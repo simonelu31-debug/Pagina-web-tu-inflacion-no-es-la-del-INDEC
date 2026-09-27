@@ -165,15 +165,37 @@ h3 .secic{font-size:1.25rem;margin-right:.35em;vertical-align:-.3em;display:inli
 .grel .term{font-size:.8rem;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--ink);cursor:pointer}
 .gtools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
 .gtools input{max-width:360px}
+.gtools .btn{padding:6px 12px;font-size:.85rem}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{font:inherit;font-size:.85rem;cursor:pointer;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
 .chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;align-items:start}
-.gcard{font-size:.92rem;scroll-margin-top:90px}
-.gcard h3{font-size:1.08rem;margin:2px 0 8px}
-.gcard p{margin:0 0 10px}
-.gcat{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.gcard:target,.gcard.flash{animation:flash 1.6s ease}
+.glist{display:grid;gap:22px;max-width:820px}
+.ggroup h3{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 8px}
+.gacc{padding:0;overflow:hidden}
+.gitem{border-top:1px solid var(--line);scroll-margin-top:90px;margin:0;max-width:none;color:var(--ink);font-size:1rem}
+.gitem:first-child{border-top:0}
+.gitem summary{
+  list-style:none;display:flex;align-items:center;gap:12px;cursor:pointer;
+  padding:14px 18px;font-weight:600;font-size:1rem;
+}
+.gitem summary::-webkit-details-marker{display:none}
+.gitem summary:hover{background:var(--field)}
+.gitem summary .gname{flex:1;min-width:0}
+.gitem summary .gcat{font-size:.72rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.gitem summary .chev{
+  flex-shrink:0;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--you) 20%,transparent);color:var(--you-ink);transition:transform .2s ease;
+}
+.gitem summary .chev .ic{width:16px;height:16px}
+.gitem[open] summary .chev{transform:rotate(180deg)}
+.gitem[open] summary{color:var(--you-ink)}
+.gbody{padding:0 18px 14px;font-size:.93rem;max-width:68ch}
+.gbody p{margin:0 0 10px}
+.gitem[open] .gbody{animation:gopen .22s ease}
+@keyframes gopen{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.gitem[open] .gbody{animation:none}.gitem summary .chev{transition:none}}
+.gcount{font-size:.82rem;color:var(--muted)}
+.gitem.flash{animation:flash 1.6s ease}
 @keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--you)}100%{box-shadow:0 0 0 0 transparent}}
 .calc-help{font-size:.82rem;color:var(--muted);margin:-8px 0 16px}
 
@@ -404,10 +426,11 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
   <!-- 5b. GLOSARIO -->
   <section class="block" id="glosario">
     <h2 class="sec"><span class="secic" data-icon="book"></span>Glosario</h2>
-    <p class="lead">Las palabras que usan los economistas y los noticieros, explicadas con ejemplos. En toda la página, los términos subrayados con puntitos se pueden tocar para ver qué significan.</p>
+    <p class="lead">Las palabras que usan los economistas y los noticieros, explicadas con ejemplos. Tocá un término para ver su definición. En toda la página, las palabras subrayadas con puntitos también se pueden tocar.</p>
     <div class="gtools">
       <input type="search" id="gSearch" placeholder="Buscar, por ejemplo: interanual" aria-label="Buscar en el glosario" autocomplete="off">
       <div class="chips" id="gChips" role="group" aria-label="Filtrar por tema"></div>
+      <button type="button" class="btn" id="gToggleAll">Abrir todos</button>
     </div>
     <div class="glist" id="glist"></div>
   </section>
@@ -578,6 +601,7 @@ const ICONS = {
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
   share:'<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/>',
+  chev:'<path d="m6 9 6 6 6-6"/>',
   book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/><path d="M8 7h8M8 10.5h6"/>',
   moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'
 };
@@ -788,16 +812,55 @@ const normTxt = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
 const gEntry = k => { const e=GLOSS[k]; return `<p>${e.d}</p>${e.ex?`<p class="gex"><b>Ejemplo.</b> ${e.ex()}</p>`:""}${e.rel&&e.rel.length?`<div class="grel"><span>Relacionados:</span>${e.rel.map(x=>T(x,GLOSS[x].t)).join("")}</div>`:""}`; };
 
 let gFilter = "todos";
+const gOpen = new Set(); // términos desplegados (se mantienen al recalcular)
+function gItem(k,withCat){
+  const e=GLOSS[k];
+  return `<details class="gitem" id="g-${k}" data-k="${k}"${gOpen.has(k)?" open":""}>
+    <summary><span class="gname">${e.t}</span>${withCat?`<span class="gcat">${G_GROUPS[e.g]}</span>`:""}<span class="chev" aria-hidden="true">${icon("chev")}</span></summary>
+    <div class="gbody">${gEntry(k)}</div></details>`;
+}
 function renderGlossary(){
   const box=$("#glist"); if(!box) return;
   const q=normTxt($("#gSearch").value.trim());
+  const byName=(a,b)=>GLOSS[a].t.localeCompare(GLOSS[b].t,"es");
   const keys=Object.keys(GLOSS).filter(k=>{
     const e=GLOSS[k];
     return (gFilter==="todos"||e.g===gFilter) && (!q || normTxt(e.t+" "+e.d).includes(q));
-  }).sort((a,b)=>GLOSS[a].t.localeCompare(GLOSS[b].t,"es"));
-  box.innerHTML = keys.length ? keys.map(k=>`<article class="panel gcard" id="g-${k}"><div class="gcat">${G_GROUPS[GLOSS[k].g]}</div><h3>${GLOSS[k].t}</h3>${gEntry(k)}</article>`).join("")
-    : `<p class="empty">No encontramos ese término. Probá con otra palabra, como “sueldo” o “mensual”.</p>`;
+  }).sort(byName);
+  if(!keys.length){ box.innerHTML=`<p class="empty">No encontramos ese término. Probá con otra palabra, como “sueldo” o “mensual”.</p>`; paintToggleAll([]); return; }
+  if(q){ // al buscar: lista plana, y si queda uno solo se abre
+    if(keys.length===1) gOpen.add(keys[0]);
+    box.innerHTML=`<p class="gcount">${keys.length} ${keys.length===1?"término":"términos"}</p><div class="panel gacc">${keys.map(k=>gItem(k,true)).join("")}</div>`;
+  } else {
+    box.innerHTML=Object.entries(G_GROUPS).filter(([g])=>gFilter==="todos"||g===gFilter).map(([g,label])=>
+      `<div class="ggroup"><h3>${label}</h3><div class="panel gacc">${keys.filter(k=>GLOSS[k].g===g).map(k=>gItem(k,false)).join("")}</div></div>`).join("");
+  }
+  paintToggleAll(keys);
 }
+function paintToggleAll(keys){
+  const b=$("#gToggleAll"); if(!b) return;
+  b.hidden=!keys.length;
+  b.textContent = keys.length && keys.every(k=>gOpen.has(k)) ? "Cerrar todos" : "Abrir todos";
+}
+function openGlossaryItem(k){
+  gOpen.add(k);
+  if(!document.getElementById("g-"+k)){ $("#gSearch").value=""; gFilter="todos"; paintGChips(); }
+  renderGlossary();
+  const el=document.getElementById("g-"+k); if(!el) return;
+  el.open=true; el.scrollIntoView({block:"start"});
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  el.querySelector("summary").focus({preventScroll:true});
+}
+$("#glist").addEventListener("toggle",e=>{
+  const d=e.target; if(!d.classList||!d.classList.contains("gitem")) return;
+  d.open ? gOpen.add(d.dataset.k) : gOpen.delete(d.dataset.k);
+  paintToggleAll([...document.querySelectorAll("#glist .gitem")].map(x=>x.dataset.k));
+},true);
+$("#gToggleAll").addEventListener("click",()=>{
+  const items=[...document.querySelectorAll("#glist .gitem")];
+  const openAll=!items.every(d=>d.open);
+  items.forEach(d=>{ d.open=openAll; });
+});
 
 /* ventanita que se abre al tocar un término subrayado */
 const gpop=document.createElement("div");
@@ -832,13 +895,13 @@ function closeTerm(refocus=true){
 document.addEventListener("click",e=>{
   const t=e.target.closest(".term");
   if(t && gpop.contains(t)){ showTerm(t.dataset.term); return; }
-  if(t && t.closest("#glist")){ const c=document.getElementById("g-"+t.dataset.term); if(c){ c.scrollIntoView({block:"center"}); c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash"); } return; }
+  if(t && t.closest("#glist")){ openGlossaryItem(t.dataset.term); return; }
   if(t){ openTerm(t); return; }
   if(e.target.closest(".gclose")){ closeTerm(); return; }
   if(e.target.closest(".gmore")){
+    e.preventDefault();
     const k=e.target.closest(".gmore").getAttribute("href").slice(3);
-    $("#gSearch").value=""; gFilter="todos"; paintGChips(); renderGlossary(); closeTerm(false);
-    setTimeout(()=>{ const c=document.getElementById("g-"+k); if(c){ c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash"); } },50);
+    closeTerm(false); openGlossaryItem(k);
     return;
   }
   if(!gpop.hidden && !gpop.contains(e.target)) closeTerm(false);
