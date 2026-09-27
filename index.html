@@ -199,6 +199,13 @@ h3 .secic{font-size:1.25rem;margin-right:.35em;vertical-align:-.3em;display:inli
 @keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--you)}100%{box-shadow:0 0 0 0 transparent}}
 .calc-help{font-size:.82rem;color:var(--muted);margin:-8px 0 16px}
 
+/* mes a mes */
+.mmchart .mm{cursor:pointer;outline:none}
+.mmchart .mm rect,.mmchart .mm text{transition:opacity .15s}
+.mmchart:has(.mm.sel) .mm:not(.sel) rect:not([fill="transparent"]){opacity:.4}
+.mmchart .mm:focus-visible rect[fill="transparent"]{stroke:var(--you);stroke-width:2}
+.mmread{margin:10px 0 6px;font-size:.95rem;min-height:1.5em}
+
 /* sueldo */
 .income-in{display:grid;gap:14px}
 .income-in .money input{text-align:right}
@@ -455,7 +462,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     </details>
     <details>
       <summary>Fuentes</summary>
-      <p>INDEC, Índice de precios al consumidor, informes de junio, julio y agosto de 2026 (cuadros 1 a 3 y 21 a 23). Alquiler y expensas, luz y gas, prepaga, remedios, transporte público y auto usan las <button type="button" class="term" data-term="apertura">aperturas</button> regionales; el resto usa las <button type="button" class="term" data-term="division">divisiones</button>. El IPC oficial todavía pondera con la <button type="button" class="term" data-term="engho">encuesta de gastos</button> 2004/05, así que la canasta "promedio" es la de hace veinte años.</p>
+      <p>INDEC, Índice de precios al consumidor, informes de enero a agosto de 2026 (índices y variaciones por región, divisiones y aperturas). Alquiler y expensas, luz y gas, prepaga, remedios, transporte público y auto usan las <button type="button" class="term" data-term="apertura">aperturas</button> regionales; el resto usa las <button type="button" class="term" data-term="division">divisiones</button>. El IPC oficial todavía pondera con la <button type="button" class="term" data-term="engho">encuesta de gastos</button> 2004/05, así que la canasta "promedio" es la de hace veinte años.</p>
     </details>
     <details>
       <summary>Limitaciones</summary>
@@ -540,6 +547,107 @@ const MONTHS = [
       hogar:{ m:[1.6,1.5,1.8,1.4,1.2,1.4],     a:[12.2,12.4,10.3,12.0,11.8,10.6], y:[24.4,22.7,17.4,21.7,23.1,20.2] },
       cuid: { m:[1.9,1.5,2.2,2.2,1.4,2.5],     a:[16.4,14.0,14.6,13.7,16.0,13.8], y:[35.3,30.4,27.9,27.7,33.0,30.4] },
       alc:  { m:[2.0,2.1,2.4,2.1,2.6,2.2],     a:[9.2,9.3,10.9,9.1,9.5,10.6],     y:[23.1,23.0,22.3,23.1,23.3,25.3] }
+    }
+  }
+,
+  { year:2026, month:5,
+    general:{ m:[2.3,2.0,2.6,2.1,2.1,1.7], a:[14.6,14.3,17.6,15.9,14.6,13.3], y:[33.6,32.4,35.3,33.2,33.2,32.2] },
+    data:{
+      alim: { m:[2.8,2.3,2.1,2.1,1.9,2.0],     a:[15.9,16.6,19.6,17.4,15.4,13.5],  y:[33.5,33.4,38.2,34.1,33.5,27.7] },
+      alq:  { m:[2.5,3.1,6.7,2.5,3.6,6.6],     a:[12.1,19.1,24.7,22.4,18.5,35.5],  y:[41.2,60.4,79.9,73.2,57.9,87.5] },
+      ener: { m:[0.8,1.7,7.0,4.8,4.1,-3.4],    a:[30.4,21.7,49.9,28.4,27.9,17.8],  y:[54.8,48.7,71.1,49.8,56.1,50.9] },
+      tpub: { m:[3.6,5.2,-0.2,0.3,4.1,1.6],    a:[19.4,19.1,15.8,28.8,25.3,14.6],  y:[48.6,46.7,23.6,49.7,46.1,35.5] },
+      auto: { m:[1.9,1.4,1.6,1.3,2.7,1.6],     a:[20.3,20.7,20.8,21.8,22.7,23.8],  y:[48.9,48.8,57.1,56.0,52.4,64.1] },
+      prep: { m:[2.9,2.9,3.0,2.8,3.5,3.1],     a:[14.3,14.7,13.6,12.8,15.8,14.3],  y:[31.7,33.3,30.5,29.2,33.8,32.2] },
+      rem:  { m:[2.5,2.3,2.2,2.6,2.4,1.9],     a:[12.2,11.9,10.9,11.2,11.2,9.9],   y:[25.5,25.7,23.2,22.5,23.8,22.1] },
+      com:  { m:[3.7,2.9,3.9,3.8,3.1,3.6],     a:[17.8,15.9,17.2,16.8,16.4,15.8],  y:[39.7,35.3,34.9,33.9,37.1,36.8] },
+      rest: { m:[2.1,1.3,3.2,1.9,1.1,1.5],     a:[16.2,15.9,17.2,17.5,13.5,11.8],  y:[36.5,39.2,43.8,37.5,33.5,29.9] },
+      rec:  { m:[3.0,2.6,2.5,2.8,2.2,2.5],     a:[10.5,12.1,11.2,12.2,10.1,9.5],   y:[30.9,30.3,26.1,27.8,28.3,22.8] },
+      edu:  { m:[4.0,2.2,0.7,1.2,2.9,3.0],     a:[23.7,20.1,27.8,24.0,20.6,20.7],  y:[42.5,40.4,40.8,53.9,40.7,43.8] },
+      ropa: { m:[-0.3,0.8,1.4,0.3,0.5,1.9],    a:[6.5,5.8,7.7,4.8,5.7,7.7],        y:[12.7,10.3,14.7,13.0,11.4,14.8] },
+      hogar:{ m:[1.1,1.6,1.3,1.9,2.1,1.3],     a:[10.5,10.6,8.4,10.4,10.5,9.0],    y:[25.1,22.8,16.4,22.4,24.0,22.1] },
+      cuid: { m:[2.4,2.3,2.4,2.8,2.3,1.9],     a:[14.2,12.3,12.0,11.2,14.5,11.0],  y:[33.9,30.4,27.0,25.4,31.8,27.2] },
+      alc:  { m:[1.1,0.8,0.3,0.4,-0.2,0.5],    a:[7.0,7.0,8.3,6.8,6.7,8.2],        y:[24.4,23.7,21.8,23.7,23.6,26.1] }
+    }
+  },
+  { year:2026, month:4,
+    general:{ m:[2.8,2.4,2.7,2.5,2.1,2.6], a:[12.1,12.1,14.6,13.5,12.2,11.4], y:[32.6,31.9,33.5,32.1,32.6,32.0] },
+    data:{
+      alim: { m:[1.2,1.8,2.4,1.5,0.4,1.8],     a:[12.7,14.0,17.2,14.9,13.3,11.2],  y:[30.4,31.1,36.3,32.2,32.0,26.2] },
+      alq:  { m:[2.3,4.4,2.8,4.3,3.3,11.5],    a:[9.4,15.5,16.9,19.5,14.4,27.1],   y:[45.1,62.2,78.6,79.0,59.0,86.2] },
+      ener: { m:[8.0,0.8,4.1,3.9,0.0,-0.8],    a:[29.3,19.6,40.1,22.6,22.9,21.9],  y:[56.4,45.8,59.4,45.8,48.5,59.8] },
+      tpub: { m:[0.9,2.3,3.5,2.8,2.6,-0.1],    a:[15.2,13.3,16.0,28.3,20.4,12.8],  y:[45.6,43.8,23.9,50.2,51.0,34.6] },
+      auto: { m:[8.7,8.9,10.6,10.0,9.7,10.8],  a:[18.1,19.0,19.0,20.2,19.4,21.9],  y:[45.4,44.3,51.3,51.3,47.2,58.9] },
+      prep: { m:[2.3,3.1,2.6,2.7,3.2,2.8],     a:[11.1,11.5,10.3,9.7,11.9,10.9],   y:[31.7,33.8,29.1,31.9,33.0,32.0] },
+      rem:  { m:[2.3,2.3,2.2,2.0,2.1,2.2],     a:[9.4,9.4,8.5,8.4,8.6,7.8],        y:[25.1,26.1,23.4,22.6,24.0,21.6] },
+      com:  { m:[4.0,4.1,4.5,4.0,4.5,3.4],     a:[13.5,12.6,12.8,12.5,12.9,11.7],  y:[40.7,36.7,34.9,34.7,37.4,35.8] },
+      rest: { m:[2.4,2.6,1.6,4.2,2.7,2.7],     a:[13.8,14.4,13.6,15.2,12.3,10.1],  y:[37.8,42.2,44.0,34.8,37.7,30.5] },
+      rec:  { m:[1.5,0.1,1.9,1.4,0.8,1.1],     a:[7.2,9.3,8.5,9.2,7.7,6.8],        y:[28.4,30.3,25.3,26.3,28.0,21.9] },
+      edu:  { m:[5.5,3.9,1.4,1.6,3.8,2.5],     a:[19.0,17.5,26.9,22.6,17.2,17.2],  y:[39.4,39.3,41.6,56.3,41.3,46.2] },
+      ropa: { m:[4.4,2.1,2.1,2.4,3.1,1.7],     a:[6.9,5.0,6.2,4.5,5.1,5.6],        y:[13.3,11.2,15.8,13.9,12.9,14.6] },
+      hogar:{ m:[3.1,2.9,1.7,2.2,2.5,3.2],     a:[9.3,8.9,7.0,8.3,8.3,7.6],        y:[25.5,22.6,16.3,21.6,23.6,20.7] },
+      cuid: { m:[2.9,1.9,2.2,1.7,3.2,2.3],     a:[11.5,9.8,9.4,8.2,11.9,8.9],      y:[34.6,30.3,26.3,25.5,31.9,28.1] },
+      alc:  { m:[2.1,1.5,1.8,1.8,2.3,2.3],     a:[5.9,6.2,8.0,6.4,6.9,7.7],        y:[23.7,23.5,22.6,23.8,24.5,26.6] }
+    }
+  },
+  { year:2026, month:3,
+    general:{ m:[3.4,3.3,4.1,4.0,3.2,2.5], a:[9.1,9.5,11.5,10.7,9.9,8.6], y:[32.6,32.4,33.4,32.5,33.5,32.1] },
+    data:{
+      alim: { m:[2.9,3.5,4.5,4.4,4.0,3.2],     a:[11.3,11.9,14.4,13.2,12.8,9.3],   y:[32.4,32.5,37.3,34.6,36.0,27.8] },
+      alq:  { m:[3.1,3.7,3.4,2.7,3.4,3.2],     a:[6.9,10.7,13.7,14.6,10.7,13.9],   y:[45.4,64.4,77.9,82.0,60.3,87.5] },
+      ener: { m:[4.7,3.1,14.1,3.4,3.7,2.0],    a:[19.7,18.6,34.6,18.0,22.8,22.9],  y:[45.6,44.1,55.1,41.5,48.0,59.5] },
+      tpub: { m:[8.6,4.0,0.2,6.7,3.5,1.6],     a:[14.3,10.8,12.1,24.9,17.3,12.9],  y:[46.7,42.8,21.9,46.5,55.1,36.8] },
+      auto: { m:[5.9,5.7,5.8,7.1,6.1,6.7],     a:[8.6,9.3,7.6,9.3,8.9,10.1],       y:[35.5,35.0,38.4,40.8,35.9,46.4] },
+      prep: { m:[2.9,2.6,2.6,2.2,3.0,2.7],     a:[8.5,8.2,7.5,6.8,8.4,7.8],        y:[31.7,32.6,28.5,30.1,31.9,30.6] },
+      rem:  { m:[2.8,2.1,1.9,1.9,2.0,1.7],     a:[7.0,6.9,6.2,6.3,6.3,5.5],        y:[25.3,25.6,23.0,22.4,23.5,21.4] },
+      com:  { m:[3.0,2.9,2.8,3.0,2.8,2.7],     a:[9.2,8.1,8.0,8.2,8.0,8.0],        y:[38.3,35.3,33.1,35.5,35.3,35.6] },
+      rest: { m:[3.3,3.8,4.9,3.5,2.9,1.9],     a:[11.1,11.5,11.9,10.6,9.4,7.2],    y:[40.1,44.1,49.4,34.3,39.3,33.1] },
+      rec:  { m:[3.2,4.4,1.2,4.8,3.1,1.9],     a:[5.7,9.2,6.5,7.7,6.9,5.6],        y:[29.8,38.6,26.8,30.1,29.7,22.2] },
+      edu:  { m:[10.7,12.1,22.7,18.1,9.2,10.0],a:[12.8,13.1,25.2,20.6,12.9,14.3],  y:[34.5,38.5,45.5,56.3,42.4,46.6] },
+      ropa: { m:[4.2,2.4,2.5,1.5,1.9,1.2],     a:[2.4,2.9,4.0,2.0,1.9,3.9],        y:[13.6,12.0,16.8,15.5,13.5,16.2] },
+      hogar:{ m:[1.3,1.5,0.9,1.2,1.3,0.1],     a:[6.0,5.8,5.2,6.1,5.6,4.2],        y:[23.1,20.0,15.0,19.8,21.4,18.5] },
+      cuid: { m:[1.8,1.6,2.0,1.9,1.4,1.4],     a:[8.4,7.7,7.1,6.4,8.4,6.4],        y:[34.2,30.8,26.8,26.5,33.0,27.8] },
+      alc:  { m:[2.1,2.2,2.2,2.4,2.1,1.9],     a:[3.8,4.6,6.1,4.5,4.5,5.2],        y:[24.9,24.9,23.4,24.5,24.9,27.5] }
+    }
+  },
+  { year:2026, month:2,
+    general:{ m:[2.6,3.0,3.1,3.5,3.4,3.0], a:[5.5,6.0,7.1,6.5,6.5,5.9], y:[33.2,32.9,32.1,33.0,33.9,33.1] },
+    data:{
+      alim: { m:[3.0,3.4,4.5,4.1,4.3,2.5],     a:[8.2,8.1,9.5,8.4,8.5,6.0],        y:[36.7,35.4,38.9,36.7,38.3,27.6] },
+      alq:  { m:[2.4,2.4,2.9,4.3,4.1,2.6],     a:[3.7,6.7,9.9,11.6,7.0,10.4],      y:[48.9,65.4,81.4,93.6,67.7,100.0] },
+      ener: { m:[12.1,11.7,4.4,11.7,16.7,16.0],a:[14.4,15.0,18.0,14.1,18.5,20.6],  y:[40.9,41.5,36.4,39.1,44.8,62.3] },
+      tpub: { m:[4.3,2.3,6.4,8.8,-0.4,0.7],    a:[5.2,6.5,11.9,17.1,13.3,11.1],    y:[38.0,41.3,21.4,39.9,53.6,33.3] },
+      auto: { m:[1.6,1.9,1.1,1.9,1.5,1.3],     a:[2.5,3.4,1.7,2.0,2.6,3.1],        y:[30.9,29.7,33.2,33.9,29.1,40.6] },
+      prep: { m:[2.9,2.8,2.3,2.6,2.7,2.7],     a:[5.5,5.4,4.8,4.5,5.3,4.9],        y:[30.7,32.3,27.4,31.7,30.4,30.8] },
+      rem:  { m:[2.2,2.3,2.2,1.9,2.1,1.9],     a:[4.1,4.8,4.2,4.2,4.3,3.7],        y:[23.7,24.4,22.0,21.5,22.4,21.3] },
+      com:  { m:[2.1,1.6,1.7,1.8,1.5,1.4],     a:[6.0,5.1,5.1,5.1,5.1,5.1],        y:[38.4,34.3,32.0,33.5,33.9,35.8] },
+      rest: { m:[2.6,3.5,2.2,3.7,2.9,2.4],     a:[7.6,7.5,6.6,6.9,6.3,5.2],        y:[40.8,44.1,47.3,37.3,38.3,37.4] },
+      rec:  { m:[1.3,4.3,3.4,0.3,1.1,1.2],     a:[2.4,4.6,5.2,2.8,3.7,3.7],        y:[25.5,33.0,26.6,25.3,27.2,22.2] },
+      edu:  { m:[1.2,0.3,1.4,1.4,2.5,4.0],     a:[1.9,0.9,2.0,2.1,3.4,3.9],        y:[40.9,56.4,47.6,74.5,63.3,74.1] },
+      ropa: { m:[-0.3,0.0,0.3,0.4,0.2,1.4],    a:[-1.8,0.4,1.5,0.5,0.0,2.7],       y:[15.1,13.8,15.0,17.2,16.8,19.3] },
+      hogar:{ m:[3.1,2.0,2.7,2.6,2.0,2.0],     a:[4.6,4.2,4.3,4.7,4.2,4.1],        y:[23.2,20.3,14.6,20.3,21.3,20.6] },
+      cuid: { m:[3.5,3.3,2.4,2.7,3.1,2.5],     a:[6.5,6.0,5.0,4.5,6.9,5.0],        y:[37.5,31.6,27.9,26.7,34.4,28.8] },
+      alc:  { m:[0.3,0.8,2.0,0.4,0.9,1.1],     a:[1.6,2.4,3.8,2.0,2.4,3.3],        y:[23.6,23.1,20.4,22.1,23.3,26.4] }
+    }
+  },
+  { year:2026, month:1,
+    general:{ m:[2.8,2.9,3.8,2.8,3.0,2.9], a:[2.8,2.9,3.8,2.8,3.0,2.9], y:[32.7,32.2,30.5,31.8,33.0,33.4] },
+    data:{
+      alim: { m:[5.1,4.5,4.8,4.1,4.0,3.4],     a:[5.1,4.5,4.8,4.1,4.0,3.4],        y:[37.0,35.0,36.5,36.0,37.9,30.0] },
+      alq:  { m:[1.3,4.2,6.8,7.0,2.9,7.6],     a:[1.3,4.2,6.8,7.0,2.9,7.6],        y:[52.6,75.7,85.7,96.0,78.2,111.7] },
+      ener: { m:[2.0,3.0,13.0,2.2,1.5,3.9],    a:[2.0,3.0,13.0,2.2,1.5,3.9],       y:[29.2,30.1,34.3,27.9,28.1,42.7] },
+      tpub: { m:[0.9,4.1,5.1,7.6,13.8,10.4],   a:[0.9,4.1,5.1,7.6,13.8,10.4],      y:[32.2,41.7,13.7,34.2,55.8,33.6] },
+      auto: { m:[0.9,1.5,0.6,0.2,1.1,1.8],     a:[0.9,1.5,0.6,0.2,1.1,1.8],        y:[31.7,29.9,35.0,34.2,29.2,41.6] },
+      prep: { m:[2.5,2.5,2.4,1.9,2.5,2.2],     a:[2.5,2.5,2.4,1.9,2.5,2.2],        y:[30.4,31.7,30.2,35.6,30.6,30.8] },
+      rem:  { m:[1.9,2.4,1.9,2.3,2.2,1.8],     a:[1.9,2.4,1.9,2.3,2.2,1.8],        y:[22.4,23.2,20.7,20.9,21.5,20.9] },
+      com:  { m:[3.9,3.4,3.4,3.3,3.5,3.7],     a:[3.9,3.4,3.4,3.3,3.5,3.7],        y:[39.0,34.6,32.7,34.3,35.0,38.0] },
+      rest: { m:[4.8,3.8,4.4,3.0,3.3,2.8],     a:[4.8,3.8,4.4,3.0,3.3,2.8],        y:[39.7,42.7,43.3,36.7,38.7,40.3] },
+      rec:  { m:[1.0,0.2,1.7,2.5,2.6,2.4],     a:[1.0,0.2,1.7,2.5,2.6,2.4],        y:[27.1,32.9,24.5,26.4,27.4,22.6] },
+      edu:  { m:[0.7,0.6,0.6,0.7,0.9,-0.1],    a:[0.7,0.6,0.6,0.7,0.9,-0.1],       y:[41.4,58.8,62.1,76.1,61.0,82.5] },
+      ropa: { m:[-1.5,0.4,1.2,0.0,-0.1,1.3],   a:[-1.5,0.4,1.2,0.0,-0.1,1.3],      y:[16.0,14.3,14.5,17.5,15.7,18.0] },
+      hogar:{ m:[1.5,2.2,1.5,2.1,2.2,2.0],     a:[1.5,2.2,1.5,2.1,2.2,2.0],        y:[21.0,18.6,12.7,18.4,20.3,20.1] },
+      cuid: { m:[2.9,2.6,2.6,1.7,3.6,2.5],     a:[2.9,2.6,2.6,1.7,3.6,2.5],        y:[37.0,30.8,28.1,26.6,34.3,29.8] },
+      alc:  { m:[1.3,1.6,1.7,1.6,1.5,2.2],     a:[1.3,1.6,1.7,1.6,1.5,2.2],        y:[24.3,24.3,18.8,23.6,24.0,27.6] }
     }
   }
 ];
@@ -653,6 +761,8 @@ const mnum = (y,m) => y*12 + (m-1);
 const mnumName = k => cap(MES[k%12]) + " " + Math.floor(k/12);
 function priceLevels(get){ // get(M,p) -> variación en %; devuelve Map mes -> nivel
   const L = new Map([[mnum(MONTHS[0].year-1,12), 1]]);
+  // primero la acumulada contra diciembre (la más directa), así el redondeo no se arrastra
+  MONTHS.forEach(M=>{ const b=mnum(M.year-1,12); if(L.has(b)) L.set(mnum(M.year,M.month), L.get(b)*(1+get(M,"a")/100)); });
   let changed = true;
   while(changed){
     changed = false;
@@ -988,23 +1098,27 @@ function marimekko(rows, you, off){
     <text x="${padL}" y="${H-6}" font-size="11" fill="var(--muted)">0% de tu gasto</text>
     <text x="${W-padR}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="end">100%</text></svg>`;
 }
-function monthlyChart(series,W=640){ // series: [{label, you, off}] de más viejo a más nuevo
-  const H=240,padL=38,padR=8,padT=16,padB=30, iw=W-padL-padR, ih=H-padT-padB;
+function monthlyChart(series,W,sel){ // series: [{label, short, you, off}] de más viejo a más nuevo
+  const H=230,padL=6,padR=6,padT=22,padB=28, iw=W-padL-padR, ih=H-padT-padB;
   const vals=series.flatMap(s=>[s.you,s.off]).concat([0]);
-  let max=Math.max(...vals)*1.15, min=Math.min(0,Math.min(...vals));
+  let max=Math.max(...vals)*1.12, min=Math.min(0,Math.min(...vals));
   const y=v=>padT+(max-v)/(max-min)*ih;
-  const gw=iw/series.length, bw=Math.min(46,gw*0.3);
+  const gw=iw/series.length, bw=Math.min(40,gw*0.36);
+  const showVals = bw+3 >= 33;             // si no entran los números, se ven al tocar el mes
+  const lab = s => gw>=56 ? s.label : s.short;
   let g="";
   series.forEach((s,i)=>{
     const cx=padL+gw*i+gw/2;
-    [[s.you,"var(--you)",-bw-2],[s.off,"var(--indec)",2]].forEach(([v,col,dx])=>{
+    g+=`<g class="mm${i===sel?" sel":""}" data-i="${i}" tabindex="0" role="button" aria-label="${s.label}: tu inflación ${pct(s.you)}, INDEC ${pct(s.off)}">
+      <rect x="${cx-gw/2}" y="0" width="${gw}" height="${H}" fill="transparent"/>`;
+    [[s.you,"var(--you)",-bw-1.5],[s.off,"var(--indec)",1.5]].forEach(([v,col,dx])=>{
       const top=y(Math.max(v,0)), h=Math.abs(y(v)-y(0));
-      g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"/>
-          <text x="${cx+dx+bw/2}" y="${top-5}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`;
+      g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"/>`;
+      if(showVals) g+=`<text x="${cx+dx+bw/2}" y="${v>=0?top-5:top+h+13}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`;
     });
-    g+=`<text x="${cx}" y="${H-10}" text-anchor="middle" font-size="12" fill="var(--muted)">${s.label}</text>`;
+    g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="12" fill="var(--muted)">${lab(s)}</text></g>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tu inflación mensual comparada con el INDEC">
+  return `<svg class="mmchart" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Tu inflación mensual comparada con el INDEC">
     <line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>${g}</svg>`;
 }
 
@@ -1105,18 +1219,31 @@ function renderIncome(r){
   el.innerHTML=html;
 }
 
+let mmSel=-1, mmSeries=[];
+function paintMonthlyRead(){
+  const s=mmSeries[mmSel], el=$("#mmRead"); if(!s||!el) return;
+  const d=s.you-s.off;
+  el.innerHTML=`<b>${s.name}:</b> tu inflación <b style="color:var(--you-ink)">${pct(s.you)}</b> · INDEC <b style="color:var(--indec)">${pct(s.off)}</b> · ${Math.abs(d)<0.05?"igual a la oficial":`${pct(Math.abs(d)).replace("%"," puntos")} ${d>0?"arriba":"abajo"}`}`;
+  document.querySelectorAll("#monthly .mm").forEach(g=>g.classList.toggle("sel",+g.dataset.i===mmSel));
+}
 function renderMonthly(r){
   const el=$("#monthly");
   const series=[...MONTHS].reverse().map(M=>{
     const res=inflation(spend,M,"m",r);
-    return {label:cap(MES[M.month-1]).slice(0,3)+" "+String(M.year).slice(2), you:res?res.value:0, off:M.general.m[r]};
+    return {label:cap(MES[M.month-1]).slice(0,3)+" "+String(M.year).slice(2), short:cap(MES[M.month-1]).slice(0,3), name:monthName(M), you:res?res.value:0, off:M.general.m[r]};
   });
   if(!CATS.some(c=>spend[c.id]>0)){ el.innerHTML=`<p class="empty">Cargá tus gastos en la calculadora para ver la evolución.</p>`; return; }
   const sumYou=series.reduce((s,x)=>s*(1+x.you/100),1), sumOff=series.reduce((s,x)=>s*(1+x.off/100),1);
-  el.innerHTML = `${monthlyChart(series,Math.max(320,Math.min(640,el.clientWidth-44)))}
+  if(!(mmSel>=0 && mmSel<series.length)) mmSel=series.length-1;
+  el.innerHTML = `${monthlyChart(series,Math.max(260,el.clientWidth-44),mmSel)}
+    <p class="mmread" id="mmRead" aria-live="polite"></p>
     <div class="legend"><span><s style="background:var(--you)"></s>Tu inflación</span><span><s style="background:var(--indec)"></s>INDEC ${REG_SHORT[r]}</span></div>
-    <p class="verdict" style="margin-bottom:0">Sumando los ${series.length} meses, tus precios subieron ${pct((sumYou-1)*100)} y los del índice oficial ${pct((sumOff-1)*100)}.</p>`;
+    <p class="verdict" style="margin-bottom:0">Tocá un mes para ver el detalle. Sumando los ${series.length} meses, tus precios subieron ${pct((sumYou-1)*100)} y los del índice oficial ${pct((sumOff-1)*100)}.</p>`;
+  mmSeries=series; paintMonthlyRead();
 }
+$("#monthly").addEventListener("click",e=>{ const g=e.target.closest(".mm"); if(g){ mmSel=+g.dataset.i; paintMonthlyRead(); } });
+$("#monthly").addEventListener("keydown",e=>{ const g=e.target.closest(".mm"); if(g&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); mmSel=+g.dataset.i; paintMonthlyRead(); } });
+let mmResize; addEventListener("resize",()=>{ clearTimeout(mmResize); mmResize=setTimeout(()=>renderMonthly(state.region),150); });
 
 function renderRank(M,p,r){
   $("#rankLead").innerHTML = `${periodText(M,p)}, ${REG_IN[r]}, según el ${T("indec","INDEC")}. En negrita, los ${T("division","rubros")} en los que vos gastás.`;
@@ -1364,12 +1491,13 @@ function histChart(series,W=640){
   let max=Math.max(...vals)*1.18||1, min=Math.min(0,Math.min(...vals)*1.18);
   const y=v=>padT+(max-v)/(max-min)*ih;
   const gw=iw/series.length, bw=Math.min(40,gw*0.3); let g="";
+  const showVals = bw+2 >= 32;
   series.forEach((s,i)=>{
     const cx=padL+gw*i+gw/2;
     const bars=[[s.you,"var(--you)",s.off===null?-bw/2:-bw-2]];
     if(s.off!==null) bars.push([s.off,"var(--indec)",2]);
     bars.forEach(([v,col,dx])=>{const top=y(Math.max(v,0)),h=Math.abs(y(v)-y(0));
-      g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"/><text x="${cx+dx+bw/2}" y="${v>=0?top-5:top+h+13}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`;});
+      g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"><title>${s.label}: ${pct(v)}</title></rect>${showVals?`<text x="${cx+dx+bw/2}" y="${v>=0?top-5:top+h+13}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`:""}`;});
     g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="12" fill="var(--muted)">${s.label}</text>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Suba mensual de tus facturas comparada con el INDEC"><line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>${g}</svg>`;
@@ -1383,7 +1511,7 @@ function renderLedgerHist(){
     return;
   }
   const acc=(series.reduce((s,x)=>s*(1+x.you/100),1)-1)*100;
-  el.innerHTML=`<h3>Tu serie de inflación</h3><p class="sub">Suba de tus facturas en cada mes que cargaste.</p>${histChart(series,Math.max(320,Math.min(640,el.clientWidth-44)))}
+  el.innerHTML=`<h3>Tu serie de inflación</h3><p class="sub">Suba de tus facturas en cada mes que cargaste.</p>${histChart(series,Math.max(260,el.clientWidth-44))}
     <div class="legend"><span><s style="background:var(--you)"></s>Tus facturas</span><span><s style="background:var(--indec)"></s>INDEC ${REG_SHORT[r]}</span></div>
     <p class="verdict" style="margin-bottom:0">En los ${series.length} meses que registraste, lo que pagás subió ${pct(acc)} acumulado.</p>`;
 }
