@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tu inflación — calculadora de inflación personal</title>
+<meta name="description" content="Calculá tu inflación personal según lo que gastás, compará con el INDEC y fijate si tu sueldo le ganó a tus precios.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#EDF0F3; --surface:#FFFFFF; --ink:#18212C; --muted:#5B6878; --line:#D3D9E0;
-  --you:#E0A526; --you-ink:#6B4A00; --indec:#2F5D8A; --neg:#3E8E7E; --field:#F6F8FA;
+  --you:#E0A526; --you-ink:#8A5F00; --indec:#2F5D8A; --good:#2E7D5B; --bad:#B5443C; --field:#F6F8FA;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
@@ -18,42 +19,58 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#121820; --surface:#1B232E; --ink:#E8EDF2; --muted:#9AA7B6; --line:#2E3946;
-    --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --neg:#6CC0AE; --field:#222C38;
+    --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --good:#6CC79A; --bad:#EF8A80; --field:#222C38;
   }
 }
 :root[data-theme="dark"]{
   --bg:#121820; --surface:#1B232E; --ink:#E8EDF2; --muted:#9AA7B6; --line:#2E3946;
-  --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --neg:#6CC0AE; --field:#222C38;
+  --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --good:#6CC79A; --bad:#EF8A80; --field:#222C38;
 }
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:calc(64px + env(safe-area-inset-top,0px));scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   margin:0;background:var(--bg);color:var(--ink);
   font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums;
 }
-.wrap{max-width:1160px;margin:0 auto;padding:32px 20px 96px}
-header{max-width:62ch;margin-bottom:28px}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+nav.top{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);
+  border-bottom:1px solid var(--line);
+}
+nav.top .wrap{display:flex;gap:6px;align-items:center;overflow-x:auto;padding-top:10px;padding-bottom:10px;white-space:nowrap}
+nav.top .brand{font-stretch:125%;font-weight:800;margin-right:14px}
+nav.top a{color:var(--muted);text-decoration:none;font-size:.9rem;padding:5px 10px;border-radius:999px}
+nav.top a:hover{color:var(--ink);background:var(--surface)}
+header.hero{padding:40px 0 28px;max-width:64ch}
 h1{
   font-stretch:125%;font-weight:800;font-size:clamp(2.4rem,7vw,4.2rem);
   line-height:.95;letter-spacing:-.02em;margin:0 0 14px;
 }
-header p{margin:0;color:var(--muted);font-size:1.05rem}
+header.hero p{margin:0;color:var(--muted);font-size:1.05rem}
+.stamp{margin-top:14px;font-size:.9rem;color:var(--muted)}
+.stamp b{color:var(--ink)}
+section.block{padding:44px 0;border-top:1px solid var(--line)}
+section.block:first-of-type{border-top:0;padding-top:0}
+h2.sec{font-stretch:120%;font-weight:800;font-size:clamp(1.6rem,4vw,2.3rem);letter-spacing:-.01em;line-height:1.05;margin:0 0 8px}
+p.lead{color:var(--muted);max-width:62ch;margin:0 0 24px}
 .grid{display:grid;gap:24px}
 @media (min-width:900px){
-  .grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:start}
-  .results{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
+  .grid.two{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:start}
+  .sticky{position:sticky;top:calc(72px + env(safe-area-inset-top,0px))}
 }
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
-h2{font-stretch:110%;font-size:1.15rem;margin:0 0 4px;font-weight:700}
+h3{font-stretch:110%;font-size:1.1rem;margin:0 0 4px;font-weight:700}
 .sub{color:var(--muted);font-size:.92rem;margin:0 0 16px}
-.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+@media (max-width:560px){.controls{grid-template-columns:1fr 1fr}.controls label:first-child{grid-column:1/-1}}
 label.ctl{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
 select,input{
   font:inherit;color:var(--ink);background:var(--field);
   border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;
 }
-select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible{
+select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{
   outline:3px solid var(--you);outline-offset:2px
 }
 .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
@@ -73,30 +90,56 @@ select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visi
 .money span{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 .money input{padding-left:24px;text-align:right}
 .total{display:flex;justify-content:space-between;padding-top:12px;border-top:2px solid var(--ink);font-weight:700;margin-top:4px}
-
-/* resultado */
 .versus{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:6px 0 10px}
-.big{font-stretch:125%;font-weight:800;font-size:clamp(2.6rem,6vw,3.6rem);line-height:1;letter-spacing:-.02em}
+.big{font-stretch:125%;font-weight:800;font-size:clamp(2.4rem,6vw,3.5rem);line-height:1;letter-spacing:-.02em}
 .big.you{color:var(--you-ink)}
 .big.indec{color:var(--indec)}
 .who{font-size:.85rem;color:var(--muted);margin-top:6px}
 .verdict{font-size:1.02rem;margin:8px 0 18px;max-width:52ch}
-.chartbox{overflow-x:auto}
 svg{display:block;width:100%;height:auto}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:8px 0 18px}
 .legend i{display:inline-block;width:18px;height:0;border-top:2px solid;vertical-align:middle;margin-right:6px}
+.legend s{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-1px;margin-right:6px;text-decoration:none}
 table{width:100%;border-collapse:collapse;font-size:.88rem}
+.tablebox{overflow-x:auto}
 th{font-weight:600;color:var(--muted);text-align:right;padding:6px 4px;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
 td{padding:7px 4px;text-align:right;border-bottom:1px solid var(--line)}
 td .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;vertical-align:-1px}
-.empty{color:var(--muted);padding:20px 0}
-details{margin-top:24px;color:var(--muted);font-size:.9rem;max-width:70ch}
+.empty{color:var(--muted);padding:12px 0}
+
+/* sueldo */
+.income-in{display:grid;gap:14px}
+.income-in .money input{text-align:right}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.kpi{background:var(--surface);padding:16px}
+.kpi .n{font-stretch:120%;font-weight:800;font-size:1.7rem;line-height:1.1}
+.kpi .l{font-size:.85rem;color:var(--muted);margin-top:4px}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+.scale{position:relative;height:14px;border-radius:7px;background:var(--field);border:1px solid var(--line);overflow:hidden;margin:6px 0 6px}
+.scale div{height:100%;background:var(--you)}
+.scale-l{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+
+/* ranking */
+.rank{display:grid;gap:6px}
+.rk{display:grid;grid-template-columns:minmax(0,13rem) minmax(0,1fr) 4.2rem;gap:10px;align-items:center;font-size:.92rem}
+@media (max-width:560px){.rk{grid-template-columns:minmax(0,8.5rem) minmax(0,1fr) 3.8rem;font-size:.85rem}}
+.rk .bar{height:18px;border-radius:3px;min-width:2px}
+.rk .v{text-align:right;font-weight:600}
+.rk.mine .nm{font-weight:700}
+.rk .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk .zero{position:relative}
+/* perfiles */
+.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.prof h4{font-size:1rem;margin:0 0 2px}
+.prof .n{font-stretch:125%;font-weight:800;font-size:2.4rem;line-height:1.05;margin:8px 0 2px}
+.prof p{font-size:.88rem;color:var(--muted);margin:6px 0 0}
+.prof.you-card{border-color:var(--you);border-width:2px}
+details{margin-top:8px;color:var(--muted);font-size:.93rem;max-width:72ch}
 summary{cursor:pointer;color:var(--ink);font-weight:600}
 details p{margin:10px 0}
 a{color:var(--indec)}
-
-/* barra móvil */
+footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px solid var(--line)}
 .peek{
   position:fixed;left:0;right:0;bottom:0;z-index:5;
   background:var(--ink);color:var(--bg);
@@ -105,136 +148,359 @@ a{color:var(--indec)}
 }
 .peek b{font-stretch:120%;font-size:1.15rem;color:var(--you)}
 .peek a{color:var(--bg);font-weight:600}
-@media (min-width:900px){.peek{display:none}}
-@media (prefers-reduced-motion:no-preference){ .bar{transition:all .35s ease} }
+@media (min-width:900px){.peek{display:none} footer{padding-bottom:40px}}
+
+/* facturas */
+.lhead,.lrow{display:grid;grid-template-columns:minmax(0,1fr) 7.2rem 7.2rem 4.6rem 1.8rem;gap:8px;align-items:center}
+@media (min-width:900px){#facturas .grid.two{grid-template-columns:minmax(0,1.4fr) minmax(0,.9fr)}}
+.lhead{font-size:.8rem;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--line)}
+.lhead span:nth-child(n+2){text-align:right}
+.lrow{padding:10px 0;border-bottom:1px solid var(--line)}
+.lname{display:flex;flex-direction:column;gap:4px;min-width:0}
+.lname input{font-weight:600;padding:6px 8px}
+.lname select{font-size:.8rem;padding:4px 6px;color:var(--muted)}
+.lvar{text-align:right;line-height:1.2}
+.lvar b{display:block;font-size:1rem}
+.lvar small{color:var(--muted);font-size:.75rem}
+.del{font:inherit;background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.2rem;border-radius:6px;padding:4px}
+.del:hover{color:var(--bad)}
+@media (max-width:640px){
+  .lhead{display:none}
+  .lrow{grid-template-columns:1fr 1fr 4.6rem;grid-template-areas:"name name del" "prev cur var"}
+  .lrow .lname{grid-area:name} .lrow .prev{grid-area:prev} .lrow .cur{grid-area:cur} .lrow .lvar{grid-area:var} .lrow .del{grid-area:del;justify-self:end}
+  .lrow .money::before{content:attr(data-label);display:block;font-size:.75rem;color:var(--muted);margin-bottom:2px}
+  .lrow .money span{top:auto;bottom:10px;transform:none}
+}
+.btn{font:inherit;font-size:.9rem;cursor:pointer;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+.tools .note{font-size:.82rem;color:var(--muted)}
+.ups{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:.92rem}
+.ups li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:6px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
+<nav class="top" aria-label="Secciones">
+  <div class="wrap">
+    <span class="brand">Tu inflación</span>
+    <a href="#calculadora">Calculadora</a>
+    <a href="#facturas">Tus facturas</a>
+    <a href="#sueldo">Tu sueldo</a>
+    <a href="#mes-a-mes">Mes a mes</a>
+    <a href="#que-subio">Qué subió</a>
+    <a href="#perfiles">Perfiles</a>
+    <a href="#metodologia">Cómo se calcula</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="hero">
     <h1>Tu inflación no es la del INDEC</h1>
-    <p>El IPC mide cuánto suben los precios de una canasta promedio. Pero nadie gasta como el promedio. Cargá cuánto gastás por mes en cada cosa y calculamos cuánto subió tu propio costo de vida, con los datos oficiales de agosto de 2026.</p>
+    <p>El IPC mide cuánto suben los precios de una canasta promedio. Pero nadie gasta como el promedio. Podés medir tu propia inflación de dos formas: rápido, cargando cuánto gastás en cada rubro, o exacto, anotando tus facturas de cada mes. Y de paso, ver si tu sueldo le ganó.</p>
+    <p class="stamp">Último dato cargado: <b id="lastMonth"></b>, publicado por el INDEC.</p>
   </header>
 
-  <div class="grid">
-    <section class="panel" aria-labelledby="t-gastos">
-      <h2 id="t-gastos">Tus gastos de un mes típico</h2>
-      <p class="sub">No hace falta exactitud: con montos aproximados alcanza. Lo que importa es la proporción entre rubros.</p>
-
-      <div class="controls">
-        <label class="ctl">Dónde vivís
-          <select id="region">
-            <option value="0">GBA (CABA y conurbano)</option>
-            <option value="1">Región Pampeana</option>
-            <option value="2">Noreste</option>
-            <option value="3">Noroeste</option>
-            <option value="4">Cuyo</option>
-            <option value="5">Patagonia</option>
-          </select>
-        </label>
-        <label class="ctl">Período
-          <select id="period">
-            <option value="m">Agosto 2026 (mensual)</option>
-            <option value="a">Enero a agosto 2026</option>
-            <option value="y">Últimos 12 meses</option>
-          </select>
-        </label>
+  <!-- 1. CALCULADORA -->
+  <section class="block" id="calculadora">
+    <div class="grid two">
+      <div class="panel">
+        <h3>Tus gastos de un mes típico</h3>
+        <p class="sub">No hace falta exactitud: con montos aproximados alcanza. Lo que importa es la proporción entre rubros.</p>
+        <div class="controls">
+          <label class="ctl">Mes del informe
+            <select id="month"></select>
+          </label>
+          <label class="ctl">Dónde vivís
+            <select id="region">
+              <option value="0">GBA</option>
+              <option value="1">Pampeana</option>
+              <option value="2">Noreste</option>
+              <option value="3">Noroeste</option>
+              <option value="4">Cuyo</option>
+              <option value="5">Patagonia</option>
+            </select>
+          </label>
+          <label class="ctl">Comparar
+            <select id="period">
+              <option value="m">En el mes</option>
+              <option value="a">En el año</option>
+              <option value="y">En 12 meses</option>
+            </select>
+          </label>
+        </div>
+        <div class="presets" role="group" aria-label="Cargar un ejemplo">
+          <button type="button" data-preset="estudiante">Estudiante que alquila</button>
+          <button type="button" data-preset="jubilada">Jubilada con casa propia</button>
+          <button type="button" data-preset="familia">Familia con auto</button>
+          <button type="button" data-preset="vaciar">Vaciar</button>
+        </div>
+        <div id="rows"></div>
+        <div class="total"><span>Total mensual</span><span id="total">$ 0</span></div>
       </div>
 
-      <div class="presets" role="group" aria-label="Cargar un ejemplo">
-        <button type="button" data-preset="estudiante">Estudiante que alquila</button>
-        <button type="button" data-preset="jubilada">Jubilada con casa propia</button>
-        <button type="button" data-preset="familia">Familia con auto</button>
-        <button type="button" data-preset="vaciar">Vaciar</button>
+      <div class="panel sticky" id="resultado" aria-live="polite">
+        <h3>Resultado</h3>
+        <p class="sub" id="periodLabel"></p>
+        <div id="out"></div>
       </div>
+    </div>
+  </section>
 
-      <div id="rows"></div>
-      <div class="total"><span>Total mensual</span><span id="total">$ 0</span></div>
-    </section>
 
-    <section class="panel results" id="resultado" aria-labelledby="t-res" aria-live="polite">
-      <h2 id="t-res">Resultado</h2>
-      <p class="sub" id="periodLabel"></p>
-      <div id="out"></div>
-    </section>
-  </div>
+  <!-- 1b. FACTURAS -->
+  <section class="block" id="facturas">
+    <h2 class="sec">Tu inflación con tus facturas reales</h2>
+    <p class="lead">¿Te llegó la factura de internet de este mes? Anotá cuánto pagaste en cada cosa este mes y el anterior, y calculamos cuánto subió lo que vos pagás, sin estimaciones. Cada mes queda guardado en tu navegador, así con el tiempo armás tu propia serie.</p>
+    <div class="grid two">
+      <div class="panel">
+        <div class="controls" style="grid-template-columns:1fr 1fr">
+          <label class="ctl">Mes de las facturas <select id="lMonth"></select></label>
+          <label class="ctl">Comparar con el INDEC de
+            <select id="lRegion">
+              <option value="0">GBA</option><option value="1">Pampeana</option><option value="2">Noreste</option>
+              <option value="3">Noroeste</option><option value="4">Cuyo</option><option value="5">Patagonia</option>
+            </select>
+          </label>
+        </div>
+        <div class="lhead"><span>Concepto</span><span id="lPrevH"></span><span id="lCurH"></span><span>Suba</span><span></span></div>
+        <div id="lrows"></div>
+        <div class="tools"><button type="button" class="btn" id="lAdd">Agregar concepto</button></div>
+      </div>
+      <div class="panel sticky" id="lOut" aria-live="polite"></div>
+    </div>
+    <div class="panel" id="lHist" style="margin-top:24px"></div>
+    <div class="tools">
+      <button type="button" class="btn" id="lExport">Descargar copia de mis facturas</button>
+      <label class="btn" for="lImport" style="display:inline-block">Cargar una copia</label>
+      <input type="file" id="lImport" accept=".json,application/json" hidden>
+      <button type="button" class="btn" id="lReset">Borrar todas las facturas</button>
+      <span class="note">Tus datos se guardan solo en este navegador. Si cambiás de compu o de celular, usá la copia para llevarlos.</span>
+    </div>
+  </section>
 
-  <details>
-    <summary>Cómo lo calculamos</summary>
-    <p>Tu inflación es un promedio ponderado: cada rubro pesa según la parte de tu gasto que se lleva, y se multiplica por cuánto subieron los precios de ese rubro en tu región según el INDEC. Es la misma lógica del IPC, pero con tus ponderaciones en lugar de las de la canasta oficial.</p>
-    <p>En el gráfico, el ancho de cada barra es cuánto pesa ese rubro en tu gasto y la altura es cuánto subió. El área de cada barra es lo que aporta a tu inflación, y la línea amarilla es el promedio de todas: tu número.</p>
-    <p>Fuentes: INDEC, Índice de precios al consumidor, agosto de 2026 (cuadros 1 a 3 y 21 a 23). Alquiler, luz y gas, prepaga, remedios, transporte público y auto usan las aperturas regionales; el resto usa las divisiones. El IPC oficial todavía pondera con la encuesta de gastos 2004/05, así que la canasta "promedio" es la de hace veinte años.</p>
-    <p>Limitaciones: para el acumulado y el interanual usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos, tu inflación real puede ser más baja.</p>
-  </details>
-</div>
+  <!-- 2. SUELDO -->
+  <section class="block" id="sueldo">
+    <h2 class="sec">¿Tu sueldo le ganó a tus precios?</h2>
+    <p class="lead">Cargá cuánto cobrás ahora y cuánto cobrabas al inicio del período que elegiste arriba. Lo comparamos contra tu inflación y contra la oficial. Estos datos quedan solo en tu navegador.</p>
+    <div class="grid two">
+      <div class="panel income-in">
+        <label class="ctl">Ingreso mensual neto actual
+          <div class="money"><span>$</span><input id="incNow" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+        </label>
+        <label class="ctl"><span id="incPrevLabel">Ingreso neto antes</span>
+          <div class="money"><span>$</span><input id="incPrev" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+        </label>
+        <p class="sub" style="margin:0">Si cobrás en negro, por changas o sos monotributista, poné un promedio de lo que te entra por mes.</p>
+      </div>
+      <div class="panel" id="incomeOut" aria-live="polite"></div>
+    </div>
+  </section>
 
-<div class="peek" aria-hidden="true"><span>Tu inflación <b id="peekYou">—</b> &nbsp; INDEC <span id="peekIndec">—</span></span><a href="#resultado">Ver detalle</a></div>
+  <!-- 3. MES A MES -->
+  <section class="block" id="mes-a-mes">
+    <h2 class="sec">Tu inflación, mes a mes</h2>
+    <p class="lead">Con tu misma canasta, así se movieron tus precios en cada informe del INDEC que tenemos cargado, al lado del índice oficial de tu región.</p>
+    <div class="panel" id="monthly"></div>
+  </section>
+
+  <!-- 4. QUÉ SUBIÓ -->
+  <section class="block" id="que-subio">
+    <h2 class="sec">Qué subió más</h2>
+    <p class="lead" id="rankLead"></p>
+    <div class="panel"><div class="rank" id="rank"></div></div>
+  </section>
+
+  <!-- 5. PERFILES -->
+  <section class="block" id="perfiles">
+    <h2 class="sec">Mismos precios, distintas inflaciones</h2>
+    <p class="lead">Tres hogares imaginarios en tu región, con los mismos precios pero canastas distintas. Sirve para ver por qué la inflación que siente cada uno puede ser tan diferente del número oficial.</p>
+    <div class="profiles" id="profiles"></div>
+  </section>
+
+  <!-- 6. METODOLOGÍA -->
+  <section class="block" id="metodologia">
+    <h2 class="sec">Cómo se calcula</h2>
+    <details open>
+      <summary>La fórmula</summary>
+      <p>Tu inflación es un promedio ponderado: cada rubro pesa según la parte de tu gasto que se lleva, y se multiplica por cuánto subieron los precios de ese rubro en tu región según el INDEC. Es la misma lógica del IPC, pero con tus ponderaciones en lugar de las de la canasta oficial.</p>
+      <p>En el gráfico de la calculadora, el ancho de cada barra es cuánto pesa ese rubro en tu gasto y la altura es cuánto subió. El área de cada barra es lo que aporta a tu inflación, y la línea amarilla es el promedio de todas: tu número.</p>
+    </details>
+    <details>
+      <summary>Con tus facturas</summary>
+      <p>Sumamos lo que pagaste este mes en todos los conceptos que tienen monto en los dos meses y lo comparamos con lo que pagaste el mes anterior por esos mismos conceptos. Así, cada factura pesa según cuánto te cuesta: si el alquiler sube 5% te pega mucho más que si el celular sube 5%.</p>
+      <p>Ojo con los conceptos que dependen de cuánto consumís, como el gas en invierno o el supermercado: ahí la factura puede subir porque usaste más, no porque subió el precio. Para los que tienen precio fijo (alquiler, internet, prepaga, cuotas) la medición es exacta. La comparación con el INDEC aparece cuando el organismo publica el dato de ese mes, alrededor del día 14 del mes siguiente.</p>
+    </details>
+    <details>
+      <summary>Tu sueldo en términos reales</summary>
+      <p>La variación real se calcula como (1 + suba de tu sueldo) / (1 + inflación) − 1. Por ejemplo, si tu sueldo subió 30% y tu inflación fue 35%, tu poder de compra cayó cerca de 3,7%, no 5%. El "sueldo que necesitarías" es tu ingreso anterior ajustado por tu inflación.</p>
+    </details>
+    <details>
+      <summary>Fuentes</summary>
+      <p>INDEC, Índice de precios al consumidor, informes de junio, julio y agosto de 2026 (cuadros 1 a 3 y 21 a 23). Alquiler y expensas, luz y gas, prepaga, remedios, transporte público y auto usan las aperturas regionales; el resto usa las divisiones. El IPC oficial todavía pondera con la encuesta de gastos 2004/05, así que la canasta "promedio" es la de hace veinte años.</p>
+    </details>
+    <details>
+      <summary>Limitaciones</summary>
+      <p>Para el acumulado y los 12 meses usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos, tu inflación real puede ser más baja. Los perfiles de ejemplo son hogares inventados con montos aproximados, no datos de encuestas.</p>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Hecho por dos estudiantes de Economía de la UBA con datos públicos del INDEC. No guardamos ni enviamos lo que cargás: todo queda en tu navegador.</div>
+</footer>
+
+<div class="peek" aria-hidden="true"><span>Tu inflación <b id="peekYou">—</b> &nbsp; INDEC <span id="peekIndec">—</span></span><a href="#resultado">Ver</a></div>
 
 <script>
-// Orden de regiones: GBA, Pampeana, Noreste, Noroeste, Cuyo, Patagonia
-// m = agosto vs julio 2026, a = agosto vs dic 2025, y = agosto 2026 vs agosto 2025
-const GENERAL = {
-  m:[1.6,1.6,1.8,1.8,1.7,1.8],
-  a:[21.4,20.9,24.4,22.3,20.5,19.6],
-  y:[33.7,33.1,37.0,34.0,33.4,31.6]
-};
+/* =====================================================================
+   DATOS DEL INDEC
+   Orden de cada lista de 6 números: GBA, Pampeana, Noreste, Noroeste, Cuyo, Patagonia
+   m = variación del mes (cuadros 1 y 21)
+   a = variación desde diciembre del año anterior (cuadros 2 y 22)
+   y = variación contra el mismo mes del año anterior (cuadros 3 y 23)
+
+   PARA AGREGAR UN MES NUEVO: copiá el bloque completo del mes más reciente,
+   pegalo ARRIBA de todo dentro de MONTHS, cambiá year/month y reemplazá los números.
+   ===================================================================== */
+const MONTHS = [
+  { year:2026, month:8,
+    general:{ m:[1.6,1.6,1.8,1.8,1.7,1.8], a:[21.4,20.9,24.4,22.3,20.5,19.6], y:[33.7,33.1,37.0,34.0,33.4,31.6] },
+    data:{
+      alim: { m:[1.4,1.7,2.2,2.0,1.9,2.2],     a:[21.9,22.1,26.0,23.4,20.8,19.5], y:[34.3,34.9,41.8,37.3,34.8,30.0] },
+      alq:  { m:[2.6,3.2,4.9,2.6,3.0,3.2],     a:[23.4,32.2,41.0,35.7,30.2,45.1], y:[42.0,55.7,72.1,58.3,50.5,67.8] },
+      ener: { m:[2.5,4.3,4.7,2.1,1.6,0.7],     a:[37.9,32.0,74.6,38.5,33.0,26.8], y:[55.4,52.3,87.0,52.0,60.2,52.5] },
+      tpub: { m:[2.9,2.2,0.0,1.8,0.4,5.0],     a:[34.5,34.2,18.7,42.3,36.7,25.9], y:[52.1,53.5,25.6,54.4,52.8,42.0] },
+      auto: { m:[1.2,0.8,0.3,1.6,1.2,1.0],     a:[24.9,24.0,23.6,26.6,26.8,27.4], y:[43.4,41.8,47.0,48.5,49.0,52.1] },
+      prep: { m:[2.1,2.1,4.1,2.1,2.1,2.0],     a:[23.1,22.8,26.0,20.6,24.0,21.5], y:[33.7,34.5,37.0,29.6,34.6,32.1] },
+      rem:  { m:[2.0,2.5,2.7,2.4,2.6,2.0],     a:[20.8,20.7,19.9,19.9,19.9,18.0], y:[30.3,30.8,29.0,28.8,29.2,26.2] },
+      com:  { m:[2.4,2.2,1.8,2.2,2.3,2.2],     a:[24.1,23.3,22.0,23.1,21.9,21.5], y:[38.2,35.9,34.0,36.3,35.3,34.5] },
+      rest: { m:[2.0,1.4,3.1,2.7,1.0,2.2],     a:[23.7,23.1,24.7,24.5,19.0,21.0], y:[34.5,36.6,37.4,31.9,27.5,30.9] },
+      rec:  { m:[0.3,-0.7,0.3,-0.2,0.0,1.4],   a:[21.9,22.3,19.2,20.9,19.7,17.9], y:[33.2,31.5,28.8,28.5,28.0,25.1] },
+      edu:  { m:[2.5,2.4,0.9,2.3,4.3,3.4],     a:[31.5,26.0,42.4,32.8,29.0,29.9], y:[41.8,35.8,43.4,44.5,38.3,38.9] },
+      ropa: { m:[-1.1,-0.3,-1.8,-0.2,1.7,-0.2],a:[2.3,6.2,6.5,5.0,8.1,9.3],       y:[10.0,11.3,12.2,11.8,15.7,13.1] },
+      hogar:{ m:[1.5,1.6,1.4,1.4,0.4,1.4],     a:[16.2,16.8,13.4,16.2,14.7,13.7], y:[25.8,24.1,18.5,24.0,22.4,21.4] },
+      cuid: { m:[2.6,2.6,1.0,2.3,2.3,1.9],     a:[22.1,19.9,17.9,18.2,20.9,17.7], y:[35.4,31.4,27.0,29.1,32.8,29.7] },
+      alc:  { m:[2.2,2.0,1.4,2.4,1.9,2.2],     a:[13.4,13.2,13.9,13.2,13.5,14.8], y:[23.1,21.9,22.2,22.6,22.6,24.4] }
+    }
+  },
+  { year:2026, month:7,
+    general:{ m:[2.3,2.0,2.0,2.0,1.9,2.0], a:[19.4,19.0,22.3,20.2,18.6,17.5], y:[34.0,33.4,36.9,34.2,34.0,31.8] },
+    data:{
+      alim: { m:[2.4,1.7,1.5,1.8,1.1,1.7],     a:[20.2,20.1,23.2,21.0,18.6,16.9], y:[34.4,34.4,40.7,35.8,34.3,28.7] },
+      alq:  { m:[0.3,3.6,3.9,4.7,2.5,2.5],     a:[20.3,28.1,34.5,32.2,26.4,40.7], y:[42.3,56.6,68.2,66.6,53.2,72.5] },
+      ener: { m:[2.1,1.7,4.6,3.3,2.2,2.3],     a:[34.5,26.6,66.8,35.7,31.0,25.9], y:[54.9,49.7,84.6,53.1,61.7,54.2] },
+      tpub: { m:[5.0,2.7,2.5,3.5,8.3,3.5],     a:[30.8,31.3,18.7,39.8,36.2,19.9], y:[49.9,53.5,26.7,54.0,53.3,36.4] },
+      auto: { m:[1.0,0.5,0.7,1.0,1.2,0.7],     a:[23.5,22.9,23.2,24.6,25.3,26.2], y:[46.8,45.5,51.5,51.3,51.7,57.2] },
+      prep: { m:[2.7,2.3,3.9,1.9,2.2,2.1],     a:[20.6,20.3,21.0,18.1,21.4,19.1], y:[33.3,33.9,33.7,29.8,34.3,31.8] },
+      rem:  { m:[2.3,2.4,2.6,2.4,2.3,2.5],     a:[18.4,17.8,16.8,17.1,16.8,15.6], y:[29.3,29.1,27.2,27.0,27.4,25.0] },
+      com:  { m:[2.6,2.2,2.3,2.0,2.4,2.3],     a:[21.2,20.7,19.8,20.4,19.2,18.9], y:[37.6,35.5,33.7,34.6,35.2,34.5] },
+      rest: { m:[3.3,2.4,2.0,1.5,2.0,4.8],     a:[21.4,21.4,21.0,21.2,17.9,18.4], y:[35.7,39.7,38.4,35.2,32.3,30.4] },
+      rec:  { m:[5.8,4.3,4.0,5.3,5.1,2.8],     a:[21.5,23.1,18.9,21.1,19.6,16.2], y:[32.5,33.7,29.4,31.7,28.9,24.8] },
+      edu:  { m:[2.3,1.0,7.5,1.2,0.5,2.2],     a:[28.3,23.0,41.1,29.8,23.6,25.6], y:[40.2,35.2,45.8,51.1,40.1,44.5] },
+      ropa: { m:[-3.0,0.1,0.0,0.4,-0.7,0.8],   a:[3.5,6.6,8.5,5.3,6.2,9.5],       y:[11.4,10.7,13.7,11.8,13.1,13.7] },
+      hogar:{ m:[2.1,2.3,1.4,2.3,2.1,1.4],     a:[14.5,15.0,11.9,14.6,14.3,12.1], y:[25.0,23.6,17.5,22.9,24.1,20.4] },
+      cuid: { m:[2.2,2.6,1.9,1.7,1.8,1.5],     a:[19.0,16.9,16.7,15.6,18.2,15.5], y:[34.8,31.2,28.1,28.9,33.4,29.5] },
+      alc:  { m:[1.5,1.5,1.3,1.3,1.7,1.5],     a:[10.9,10.9,12.3,10.5,11.4,12.3], y:[24.6,23.6,22.9,23.8,24.7,26.8] }
+    }
+  },
+  { year:2026, month:6,
+    general:{ m:[1.9,2.0,1.9,1.7,1.6,1.6], a:[16.8,16.7,19.9,17.8,16.4,15.1], y:[33.4,33.4,36.5,33.8,34.0,32.0] },
+    data:{
+      alim: { m:[1.2,1.3,1.5,1.3,1.6,1.3],     a:[17.3,18.1,21.4,18.9,17.3,15.0], y:[33.9,34.7,40.2,35.5,35.7,28.2] },
+      alq:  { m:[7.0,3.8,3.8,3.1,4.1,1.3],     a:[20.0,23.7,29.5,26.2,23.3,37.2], y:[40.8,55.9,72.1,70.2,55.3,74.7] },
+      ener: { m:[1.1,2.2,6.4,2.2,0.2,4.6],     a:[31.8,24.4,59.5,31.3,28.2,23.1], y:[54.0,50.2,79.3,50.8,60.7,53.9] },
+      tpub: { m:[4.3,7.3,0.1,4.9,0.4,1.1],     a:[24.5,27.8,15.9,35.1,25.8,15.9], y:[49.7,53.8,24.0,54.3,45.6,33.3] },
+      auto: { m:[1.6,1.3,1.3,1.3,0.9,1.2],     a:[22.3,22.3,22.4,23.4,23.8,25.2], y:[48.8,49.1,55.9,56.3,52.6,61.8] },
+      prep: { m:[2.8,2.6,2.4,2.7,2.6,2.0],     a:[17.5,17.6,16.4,15.9,18.8,16.6], y:[31.8,33.4,31.0,29.1,33.6,31.4] },
+      rem:  { m:[3.2,2.7,2.7,2.8,2.8,2.7],     a:[15.8,14.9,13.9,14.3,14.3,12.8], y:[27.0,26.8,24.4,23.9,25.0,22.8] },
+      com:  { m:[0.3,2.0,-0.1,1.2,0.0,0.3],    a:[18.1,18.1,17.1,18.1,16.4,16.2], y:[37.4,35.4,33.5,34.7,35.2,34.5] },
+      rest: { m:[1.2,2.3,1.2,1.7,1.8,1.1],     a:[17.5,18.6,18.6,19.5,15.6,13.0], y:[35.1,39.9,41.1,37.5,32.5,27.6] },
+      rec:  { m:[4.0,5.2,2.8,2.5,3.4,3.2],     a:[14.9,18.0,14.3,15.0,13.8,13.0], y:[30.8,36.4,28.1,28.4,27.7,24.8] },
+      edu:  { m:[1.4,1.4,2.8,3.5,2.0,1.8],     a:[25.4,21.8,31.3,28.3,23.0,22.9], y:[39.3,36.6,42.3,51.8,41.3,44.4] },
+      ropa: { m:[0.1,0.7,0.7,0.1,1.2,0.9],     a:[6.7,6.5,8.4,4.9,7.0,8.6],       y:[13.0,10.0,14.4,11.0,13.2,14.0] },
+      hogar:{ m:[1.6,1.5,1.8,1.4,1.2,1.4],     a:[12.2,12.4,10.3,12.0,11.8,10.6], y:[24.4,22.7,17.4,21.7,23.1,20.2] },
+      cuid: { m:[1.9,1.5,2.2,2.2,1.4,2.5],     a:[16.4,14.0,14.6,13.7,16.0,13.8], y:[35.3,30.4,27.9,27.7,33.0,30.4] },
+      alc:  { m:[2.0,2.1,2.4,2.1,2.6,2.2],     a:[9.2,9.3,10.9,9.1,9.5,10.6],     y:[23.1,23.0,22.3,23.1,23.3,25.3] }
+    }
+  }
+];
+
+/* Rubros (el orden define el orden de la calculadora) */
 const CATS = [
-  {id:"alim", name:"Supermercado y almacén", hint:"Comida y bebidas para casa", c:"#C9892B",
-   m:[1.4,1.7,2.2,2.0,1.9,2.2], a:[21.9,22.1,26.0,23.4,20.8,19.5], y:[34.3,34.9,41.8,37.3,34.8,30.0]},
-  {id:"alq", name:"Alquiler y expensas", hint:"Si tenés casa propia, solo expensas", c:"#B5443C",
-   m:[2.6,3.2,4.9,2.6,3.0,3.2], a:[23.4,32.2,41.0,35.7,30.2,45.1], y:[42.0,55.7,72.1,58.3,50.5,67.8]},
-  {id:"ener", name:"Luz, gas y garrafa", hint:"Facturas de servicios del hogar", c:"#D46A2E",
-   m:[2.5,4.3,4.7,2.1,1.6,0.7], a:[37.9,32.0,74.6,38.5,33.0,26.8], y:[55.4,52.3,87.0,52.0,60.2,52.5]},
-  {id:"tpub", name:"Transporte público", hint:"SUBE: colectivo, subte, tren", c:"#2F5D8A",
-   m:[2.9,2.2,0.0,1.8,0.4,5.0], a:[34.5,34.2,18.7,42.3,36.7,25.9], y:[52.1,53.5,25.6,54.4,52.8,42.0]},
-  {id:"auto", name:"Auto o moto", hint:"Nafta, service, estacionamiento", c:"#4B7BA8",
-   m:[1.2,0.8,0.3,1.6,1.2,1.0], a:[24.9,24.0,23.6,26.6,26.8,27.4], y:[43.4,41.8,47.0,48.5,49.0,52.1]},
-  {id:"prep", name:"Prepaga u obra social", hint:"Cuota mensual", c:"#6A4C93",
-   m:[2.1,2.1,4.1,2.1,2.1,2.0], a:[23.1,22.8,26.0,20.6,24.0,21.5], y:[33.7,34.5,37.0,29.6,34.6,32.1]},
-  {id:"rem", name:"Farmacia y remedios", hint:"Medicamentos y artículos de salud", c:"#8B6DB8",
-   m:[2.0,2.5,2.7,2.4,2.6,2.0], a:[20.8,20.7,19.9,19.9,19.9,18.0], y:[30.3,30.8,29.0,28.8,29.2,26.2]},
-  {id:"com", name:"Celular e internet", hint:"Abonos y recargas", c:"#3E8E7E",
-   m:[2.4,2.2,1.8,2.2,2.3,2.2], a:[24.1,23.3,22.0,23.1,21.9,21.5], y:[38.2,35.9,34.0,36.3,35.3,34.5]},
-  {id:"rest", name:"Comer afuera y delivery", hint:"Bares, restaurantes, viandas", c:"#A8572F",
-   m:[2.0,1.4,3.1,2.7,1.0,2.2], a:[23.7,23.1,24.7,24.5,19.0,21.0], y:[34.5,36.6,37.4,31.9,27.5,30.9]},
-  {id:"rec", name:"Salidas y recreación", hint:"Cine, recitales, libros, viajes", c:"#5C9E5A",
-   m:[0.3,-0.7,0.3,-0.2,0.0,1.4], a:[21.9,22.3,19.2,20.9,19.7,17.9], y:[33.2,31.5,28.8,28.5,28.0,25.1]},
-  {id:"edu", name:"Educación", hint:"Cuotas, cursos, idiomas", c:"#7A8B3C",
-   m:[2.5,2.4,0.9,2.3,4.3,3.4], a:[31.5,26.0,42.4,32.8,29.0,29.9], y:[41.8,35.8,43.4,44.5,38.3,38.9]},
-  {id:"ropa", name:"Ropa y calzado", hint:"", c:"#9C6B8E",
-   m:[-1.1,-0.3,-1.8,-0.2,1.7,-0.2], a:[2.3,6.2,6.5,5.0,8.1,9.3], y:[10.0,11.3,12.2,11.8,15.7,13.1]},
-  {id:"hogar", name:"Casa y limpieza", hint:"Artículos de limpieza, muebles, arreglos", c:"#6E7F8F",
-   m:[1.5,1.6,1.4,1.4,0.4,1.4], a:[16.2,16.8,13.4,16.2,14.7,13.7], y:[25.8,24.1,18.5,24.0,22.4,21.4]},
-  {id:"cuid", name:"Cuidado personal y varios", hint:"Peluquería, higiene, otros", c:"#B08A5A",
-   m:[2.6,2.6,1.0,2.3,2.3,1.9], a:[22.1,19.9,17.9,18.2,20.9,17.7], y:[35.4,31.4,27.0,29.1,32.8,29.7]},
-  {id:"alc", name:"Alcohol y cigarrillos", hint:"", c:"#7D5A4F",
-   m:[2.2,2.0,1.4,2.4,1.9,2.2], a:[13.4,13.2,13.9,13.2,13.5,14.8], y:[23.1,21.9,22.2,22.6,22.6,24.4]}
+  {id:"alim", name:"Supermercado y almacén", hint:"Comida y bebidas para casa", c:"#C9892B"},
+  {id:"alq",  name:"Alquiler y expensas", hint:"Si tenés casa propia, solo expensas", c:"#B5443C"},
+  {id:"ener", name:"Luz, gas y garrafa", hint:"Facturas de servicios del hogar", c:"#D46A2E"},
+  {id:"tpub", name:"Transporte público", hint:"SUBE: colectivo, subte, tren", c:"#2F5D8A"},
+  {id:"auto", name:"Auto o moto", hint:"Nafta, service, estacionamiento", c:"#4B7BA8"},
+  {id:"prep", name:"Prepaga u obra social", hint:"Cuota mensual", c:"#6A4C93"},
+  {id:"rem",  name:"Farmacia y remedios", hint:"Medicamentos y artículos de salud", c:"#8B6DB8"},
+  {id:"com",  name:"Celular e internet", hint:"Abonos y recargas", c:"#3E8E7E"},
+  {id:"rest", name:"Comer afuera y delivery", hint:"Bares, restaurantes, viandas", c:"#A8572F"},
+  {id:"rec",  name:"Salidas y recreación", hint:"Cine, recitales, libros, viajes", c:"#5C9E5A"},
+  {id:"edu",  name:"Educación", hint:"Cuotas, cursos, idiomas", c:"#7A8B3C"},
+  {id:"ropa", name:"Ropa y calzado", hint:"", c:"#9C6B8E"},
+  {id:"hogar",name:"Casa y limpieza", hint:"Artículos de limpieza, muebles, arreglos", c:"#6E7F8F"},
+  {id:"cuid", name:"Cuidado personal y varios", hint:"Peluquería, higiene, otros", c:"#B08A5A"},
+  {id:"alc",  name:"Alcohol y cigarrillos", hint:"", c:"#7D5A4F"}
 ];
 const PRESETS = {
-  estudiante:{alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000},
-  jubilada:{alim:380000,alq:60000,ener:70000,tpub:15000,auto:0,prep:0,rem:90000,com:25000,rest:20000,rec:20000,edu:0,ropa:30000,hogar:40000,cuid:30000,alc:10000},
-  familia:{alim:900000,alq:0,ener:110000,tpub:20000,auto:250000,prep:350000,rem:50000,com:60000,rest:150000,rec:120000,edu:300000,ropa:150000,hogar:90000,cuid:70000,alc:40000}
+  estudiante:{label:"Estudiante que alquila", desc:"Alquila un monoambiente, viaja en colectivo y come afuera seguido.",
+    v:{alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000}},
+  jubilada:{label:"Jubilada con casa propia", desc:"Paga expensas pero no alquiler, gasta mucho en comida y remedios.",
+    v:{alim:380000,alq:60000,ener:70000,tpub:15000,auto:0,prep:0,rem:90000,com:25000,rest:20000,rec:20000,edu:0,ropa:30000,hogar:40000,cuid:30000,alc:10000}},
+  familia:{label:"Familia con auto", desc:"Casa propia, auto, prepaga y colegio privado para los chicos.",
+    v:{alim:900000,alq:0,ener:110000,tpub:20000,auto:250000,prep:350000,rem:50000,com:60000,rest:150000,rec:120000,edu:300000,ropa:150000,hogar:90000,cuid:70000,alc:40000}}
 };
-const PERIOD_TXT = {m:"Suba de precios de agosto de 2026 respecto de julio", a:"Suba acumulada entre diciembre de 2025 y agosto de 2026", y:"Suba entre agosto de 2025 y agosto de 2026"};
-const REG_TXT = ["GBA","la región Pampeana","el Noreste","el Noroeste","Cuyo","la Patagonia"];
 
+/* ===================== utilidades ===================== */
+const MES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+const monthName = M => cap(MES[M.month-1]) + " " + M.year;
+const REG_IN = ["en GBA","en la región Pampeana","en el Noreste","en el Noroeste","en Cuyo","en la Patagonia"];
+const REG_SHORT = ["GBA","Pampeana","Noreste","Noroeste","Cuyo","Patagonia"];
 const $ = s => document.querySelector(s);
 const pct = v => v.toLocaleString("es-AR",{minimumFractionDigits:1,maximumFractionDigits:1}) + "%";
-const money = v => "$ " + Math.round(v).toLocaleString("es-AR");
+const signed = v => (v>0?"+":"") + pct(v);
+const money = v => (v<0?"−":"") + "$ " + Math.round(Math.abs(v)).toLocaleString("es-AR");
 const parse = s => Number(String(s).replace(/\D/g,"")) || 0;
+const fmtIn = v => v ? v.toLocaleString("es-AR") : "";
 
+function periodText(M,p){
+  if(p==="m") return `Suba de precios de ${MES[M.month-1]} de ${M.year} respecto del mes anterior`;
+  if(p==="a") return `Suba acumulada entre diciembre de ${M.year-1} y ${MES[M.month-1]} de ${M.year}`;
+  return `Suba entre ${MES[M.month-1]} de ${M.year-1} y ${MES[M.month-1]} de ${M.year}`;
+}
+function prevIncomeLabel(M,p){
+  if(p==="m") return `Ingreso neto de ${MES[(M.month+10)%12]}`;
+  if(p==="a") return `Ingreso neto de diciembre de ${M.year-1}`;
+  return `Ingreso neto de ${MES[M.month-1]} de ${M.year-1}`;
+}
+function inflation(basket, M, p, r){
+  const total = CATS.reduce((s,c)=>s+(basket[c.id]||0),0);
+  if(!total) return null;
+  const rows = CATS.filter(c=>basket[c.id]>0).map(c=>{
+    const share = basket[c.id]/total, v = M.data[c.id][p][r];
+    return {id:c.id, name:c.name, c:c.c, share, v, aporte:share*v};
+  });
+  return {total, rows, value: rows.reduce((s,x)=>s+x.aporte,0)};
+}
+
+/* ===================== estado ===================== */
 let spend = Object.fromEntries(CATS.map(c=>[c.id,0]));
-let state = {region:0, period:"m"};
-
-// cargar estado guardado
+let state = {mi:0, region:0, period:"m", incNow:0, incPrev:0};
 try{
   const saved = JSON.parse(localStorage.getItem("tu-inflacion") || "null");
   if(saved){ Object.assign(spend, saved.spend||{}); Object.assign(state, saved.state||{}); }
-  else { Object.assign(spend, PRESETS.estudiante); }
-}catch(e){ Object.assign(spend, PRESETS.estudiante); }
+  else Object.assign(spend, PRESETS.estudiante.v);
+}catch(e){ Object.assign(spend, PRESETS.estudiante.v); }
+state.mi = 0; // siempre abrir en el mes más reciente
 function save(){ try{ localStorage.setItem("tu-inflacion", JSON.stringify({spend,state})); }catch(e){} }
 
-// filas de gasto
+/* ===================== armado de controles ===================== */
+$("#lastMonth").textContent = monthName(MONTHS[0]).toLowerCase();
+MONTHS.forEach((M,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=monthName(M); $("#month").appendChild(o); });
+
 const rowsEl = $("#rows");
 CATS.forEach(c=>{
   const row = document.createElement("div");
@@ -243,97 +509,354 @@ CATS.forEach(c=>{
     <div class="money"><span>$</span><input id="in-${c.id}" inputmode="numeric" autocomplete="off" placeholder="0"></div>`;
   rowsEl.appendChild(row);
   const inp = row.querySelector("input");
-  inp.addEventListener("input", ()=>{
-    spend[c.id] = parse(inp.value);
-    inp.value = spend[c.id] ? spend[c.id].toLocaleString("es-AR") : "";
-    update();
-  });
+  inp.addEventListener("input", ()=>{ spend[c.id]=parse(inp.value); inp.value=fmtIn(spend[c.id]); update(); });
+});
+[["#incNow","incNow"],["#incPrev","incPrev"]].forEach(([sel,key])=>{
+  const inp=$(sel);
+  inp.addEventListener("input",()=>{ state[key]=parse(inp.value); inp.value=fmtIn(state[key]); update(); });
 });
 function fillInputs(){
-  CATS.forEach(c=>{ $("#in-"+c.id).value = spend[c.id] ? spend[c.id].toLocaleString("es-AR") : ""; });
-  $("#region").value = state.region; $("#period").value = state.period;
+  CATS.forEach(c=> $("#in-"+c.id).value = fmtIn(spend[c.id]));
+  $("#month").value=state.mi; $("#region").value=state.region; $("#period").value=state.period;
+  $("#incNow").value=fmtIn(state.incNow); $("#incPrev").value=fmtIn(state.incPrev);
 }
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
-  const p = b.dataset.preset;
-  CATS.forEach(c=> spend[c.id] = p==="vaciar" ? 0 : (PRESETS[p][c.id]||0));
+  const p=b.dataset.preset;
+  CATS.forEach(c=> spend[c.id] = p==="vaciar" ? 0 : (PRESETS[p].v[c.id]||0));
   fillInputs(); update();
 }));
-$("#region").addEventListener("change", e=>{ state.region=+e.target.value; update(); });
-$("#period").addEventListener("change", e=>{ state.period=e.target.value; update(); });
+$("#month").addEventListener("change",e=>{state.mi=+e.target.value;update();});
+$("#region").addEventListener("change",e=>{state.region=+e.target.value;update();});
+$("#period").addEventListener("change",e=>{state.period=e.target.value;update();});
 
-function chart(rows, you, off){
-  const W=640, H=280, padL=38, padR=8, padT=14, padB=24;
-  const iw=W-padL-padR, ih=H-padT-padB;
-  const vals = rows.map(r=>r.v).concat([you, off, 0]);
-  let max = Math.max(...vals), min = Math.min(...vals);
-  max = max + (max-min)*0.08; min = Math.min(0, min);
-  const y = v => padT + (max - v)/(max - min)*ih;
-  let x = padL, bars = "";
-  rows.forEach(r=>{
-    const w = r.share*iw, top=y(Math.max(r.v,0)), h=Math.abs(y(r.v)-y(0));
-    bars += `<rect class="bar" x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${Math.max(w-1.5,0.5).toFixed(1)}" height="${Math.max(h,0.8).toFixed(1)}" fill="${r.c}"><title>${r.name}: ${pct(r.share*100)} de tu gasto, subió ${pct(r.v)}</title></rect>`;
-    x += w;
+/* ===================== gráficos ===================== */
+function niceStep(raw){ const p=Math.pow(10,Math.floor(Math.log10(raw))), n=raw/p; return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p; }
+function marimekko(rows, you, off){
+  const W=640,H=280,padL=38,padR=8,padT=14,padB=24, iw=W-padL-padR, ih=H-padT-padB;
+  const vals=rows.map(r=>r.v).concat([you,off,0]);
+  let max=Math.max(...vals), min=Math.min(...vals); max=max+(max-min)*0.08; min=Math.min(0,min);
+  const y=v=>padT+(max-v)/(max-min)*ih;
+  let x=padL, bars="";
+  [...rows].sort((a,b)=>b.v-a.v).forEach(r=>{
+    const w=r.share*iw, top=y(Math.max(r.v,0)), h=Math.abs(y(r.v)-y(0));
+    bars+=`<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${Math.max(w-1.5,.5).toFixed(1)}" height="${Math.max(h,.8).toFixed(1)}" fill="${r.c}"><title>${r.name}: ${pct(r.share*100)} de tu gasto, subió ${pct(r.v)}</title></rect>`;
+    x+=w;
   });
-  // eje
-  const step = niceStep((max-min)/4);
-  let ticks = "";
-  for(let t=Math.ceil(min/step)*step; t<=max; t+=step){
-    ticks += `<line x1="${padL}" x2="${W-padR}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${padL-6}" y="${y(t)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${Math.round(t*10)/10}%</text>`;
-  }
+  const step=niceStep((max-min)/4); let ticks="";
+  for(let t=Math.ceil(min/step)*step;t<=max;t+=step) ticks+=`<line x1="${padL}" x2="${W-padR}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${padL-6}" y="${y(t)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${Math.round(t*10)/10}%</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Barras de ancho variable: el ancho es el peso de cada rubro en tu gasto y la altura cuánto subió">
     ${ticks}${bars}
-    <line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)" stroke-width="1"/>
+    <line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>
     <line x1="${padL}" x2="${W-padR}" y1="${y(off)}" y2="${y(off)}" stroke="var(--indec)" stroke-width="2" stroke-dasharray="6 5"/>
     <line x1="${padL}" x2="${W-padR}" y1="${y(you)}" y2="${y(you)}" stroke="var(--you)" stroke-width="3"/>
     <text x="${padL}" y="${H-6}" font-size="11" fill="var(--muted)">0% de tu gasto</text>
-    <text x="${W-padR}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="end">100%</text>
-  </svg>`;
+    <text x="${W-padR}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="end">100%</text></svg>`;
 }
-function niceStep(raw){
-  const p = Math.pow(10, Math.floor(Math.log10(raw))), n = raw/p;
-  return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p;
+function monthlyChart(series,W=640){ // series: [{label, you, off}] de más viejo a más nuevo
+  const H=240,padL=38,padR=8,padT=16,padB=30, iw=W-padL-padR, ih=H-padT-padB;
+  const vals=series.flatMap(s=>[s.you,s.off]).concat([0]);
+  let max=Math.max(...vals)*1.15, min=Math.min(0,Math.min(...vals));
+  const y=v=>padT+(max-v)/(max-min)*ih;
+  const gw=iw/series.length, bw=Math.min(46,gw*0.3);
+  let g="";
+  series.forEach((s,i)=>{
+    const cx=padL+gw*i+gw/2;
+    [[s.you,"var(--you)",-bw-2],[s.off,"var(--indec)",2]].forEach(([v,col,dx])=>{
+      const top=y(Math.max(v,0)), h=Math.abs(y(v)-y(0));
+      g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"/>
+          <text x="${cx+dx+bw/2}" y="${top-5}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`;
+    });
+    g+=`<text x="${cx}" y="${H-10}" text-anchor="middle" font-size="12" fill="var(--muted)">${s.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tu inflación mensual comparada con el INDEC">
+    <line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>${g}</svg>`;
 }
 
+/* ===================== render ===================== */
 function update(){
   save();
-  const r = state.region, p = state.period;
-  const total = CATS.reduce((s,c)=>s+spend[c.id],0);
-  $("#total").textContent = money(total);
-  $("#periodLabel").textContent = PERIOD_TXT[p] + ", en " + REG_TXT[r] + ".";
-  const off = GENERAL[p][r];
-  const out = $("#out");
-  if(!total){
-    out.innerHTML = `<p class="empty">Cargá al menos un gasto a la izquierda, o elegí uno de los ejemplos, para ver tu inflación.</p>`;
-    $("#peekYou").textContent="—"; $("#peekIndec").textContent=pct(off); return;
-  }
-  const rows = CATS.filter(c=>spend[c.id]>0).map(c=>{
-    const share = spend[c.id]/total, v = c[p][r];
-    return {name:c.name, c:c.c, share, v, aporte:share*v};
-  }).sort((a,b)=>b.v-a.v);
-  const you = rows.reduce((s,x)=>s+x.aporte,0);
-  const diff = you - off;
-  const top = [...rows].sort((a,b)=>b.aporte-a.aporte).slice(0,2);
-  let verdict;
-  if(Math.abs(diff) < 0.05*Math.max(Math.abs(off),1)) verdict = `Tu inflación es prácticamente igual a la oficial.`;
-  else if(diff>0) verdict = `Tus precios subieron <b>${pct(diff).replace("%"," puntos")}</b> más que el índice oficial.`;
-  else verdict = `Tus precios subieron <b>${pct(-diff).replace("%"," puntos")}</b> menos que el índice oficial.`;
-  verdict += ` Lo que más te empuja: ${top.map(t=>t.name.toLowerCase()).join(" y ")}, que juntos explican ${pct(top.reduce((s,t)=>s+t.aporte,0)/you*100)} de tu número.`;
+  const M=MONTHS[state.mi], r=state.region, p=state.period;
+  const off=M.general[p][r];
+  const res=inflation(spend,M,p,r);
+  $("#total").textContent = money(res?res.total:0);
+  $("#periodLabel").textContent = periodText(M,p) + ", " + REG_IN[r] + ".";
+  renderMain(res,off,r);
+  renderIncome(res,off,M,p);
+  renderMonthly(r);
+  renderRank(M,p,r);
+  renderProfiles(M,p,r,res);
+}
 
-  out.innerHTML = `
+function renderMain(res,off,r){
+  const out=$("#out");
+  $("#peekIndec").textContent=pct(off);
+  if(!res){ out.innerHTML=`<p class="empty">Cargá al menos un gasto, o elegí uno de los ejemplos, para ver tu inflación.</p>`; $("#peekYou").textContent="—"; return; }
+  const you=res.value, diff=you-off;
+  const top=[...res.rows].sort((a,b)=>b.aporte-a.aporte).slice(0,2);
+  let verdict;
+  if(Math.abs(diff)<0.05*Math.max(Math.abs(off),1)) verdict=`Tu inflación es prácticamente igual a la oficial.`;
+  else verdict=`Tus precios subieron <b>${pct(Math.abs(diff)).replace("%"," puntos")}</b> ${diff>0?"más":"menos"} que el índice oficial.`;
+  if(you>0) verdict+=` Lo que más te empuja: ${top.map(t=>t.name.toLowerCase()).join(" y ")}, que juntos explican ${pct(top.reduce((s,t)=>s+t.aporte,0)/you*100)} de tu número.`;
+  out.innerHTML=`
     <div class="versus">
       <div><div class="big you">${pct(you)}</div><div class="who">Tu inflación</div></div>
-      <div><div class="big indec">${pct(off)}</div><div class="who">INDEC, ${REG_TXT[r].replace(/^(la|el) /,"")}</div></div>
+      <div><div class="big indec">${pct(off)}</div><div class="who">INDEC ${REG_SHORT[r]}</div></div>
     </div>
     <p class="verdict">${verdict}</p>
-    <div class="chartbox">${chart(rows, you, off)}</div>
+    ${marimekko(res.rows,you,off)}
     <div class="legend"><span><i style="border-color:var(--you);border-top-width:3px"></i>Tu inflación</span><span><i style="border-color:var(--indec);border-top-style:dashed"></i>INDEC</span><span>Ancho: peso en tu gasto</span><span>Alto: cuánto subió</span></div>
-    <table>
-      <thead><tr><th>Rubro</th><th>Tu gasto</th><th>Suba</th><th>Aporte</th></tr></thead>
-      <tbody>${[...rows].sort((a,b)=>b.aporte-a.aporte).map(x=>`<tr><td><span class="sw" style="background:${x.c}"></span>${x.name}</td><td>${pct(x.share*100)}</td><td>${pct(x.v)}</td><td>${(Math.round(x.aporte*100)/100).toLocaleString("es-AR",{minimumFractionDigits:2})} pp</td></tr>`).join("")}</tbody>
-    </table>`;
-  $("#peekYou").textContent = pct(you); $("#peekIndec").textContent = pct(off);
+    <div class="tablebox"><table><thead><tr><th>Rubro</th><th>Tu gasto</th><th>Suba</th><th>Aporte</th></tr></thead>
+    <tbody>${[...res.rows].sort((a,b)=>b.aporte-a.aporte).map(x=>`<tr><td><span class="sw" style="background:${x.c}"></span>${x.name}</td><td>${pct(x.share*100)}</td><td>${pct(x.v)}</td><td>${x.aporte.toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2})} pp</td></tr>`).join("")}</tbody></table></div>`;
+  $("#peekYou").textContent=pct(you);
 }
+
+function renderIncome(res,off,M,p){
+  $("#incPrevLabel").textContent = prevIncomeLabel(M,p);
+  const el=$("#incomeOut"), now=state.incNow, prev=state.incPrev;
+  const periodWord = p==="m" ? "en el último mes" : p==="a" ? `desde diciembre` : "en los últimos 12 meses";
+  if(!now){ el.innerHTML=`<h3>Tu poder de compra</h3><p class="empty">Cargá tu ingreso actual para ver cuánto de tu sueldo se llevan tus gastos. Si además cargás el ingreso anterior, calculamos si le ganaste a la inflación.</p>`; return; }
+  let html=`<h3>Tu poder de compra</h3><p class="sub">${cap(periodWord)}, ${MES[M.month-1]} de ${M.year}.</p>`;
+  if(prev && res){
+    const w=(now/prev-1)*100;
+    const realYou=((1+w/100)/(1+res.value/100)-1)*100;
+    const realOff=((1+w/100)/(1+off/100)-1)*100;
+    const need=prev*(1+res.value/100);
+    html+=`<div class="kpis">
+      <div class="kpi"><div class="n">${signed(w)}</div><div class="l">Aumento de tu sueldo</div></div>
+      <div class="kpi"><div class="n ${realYou>=0?"pos":"neg"}">${signed(realYou)}</div><div class="l">Tu sueldo real, con tu inflación</div></div>
+      <div class="kpi"><div class="n ${realOff>=0?"pos":"neg"}">${signed(realOff)}</div><div class="l">Tu sueldo real, con la del INDEC</div></div>
+    </div>
+    <p class="verdict">${realYou>=0
+      ? `Tu sueldo le ganó a tus precios: hoy podés comprar ${pct(realYou)} más que antes con lo que cobrás.`
+      : `Tus precios le ganaron a tu sueldo: para comprar lo mismo que antes, hoy deberías cobrar <b>${money(need)}</b>, ${money(need-now)} más de lo que cobrás.`}
+      ${Math.sign(realYou)!==Math.sign(realOff)&&Math.abs(realYou-realOff)>0.1?` Ojo: con la inflación oficial la conclusión sería la contraria, por eso importa medir la tuya.`:""}</p>`;
+  } else if(!res){
+    html+=`<p class="empty">Cargá tus gastos arriba para completar el cálculo.</p>`;
+  } else {
+    html+=`<p class="sub">Cargá también el ingreso anterior para saber si le ganaste a la inflación.</p>`;
+  }
+  if(res){
+    const share=res.total/now*100, left=now-res.total;
+    html+=`<p style="margin:14px 0 4px;font-weight:600">Tus gastos se llevan ${pct(share)} de tu ingreso</p>
+      <div class="scale" aria-hidden="true"><div style="width:${Math.min(share,100)}%${share>100?";background:var(--bad)":""}"></div></div>
+      <div class="scale-l"><span>Gastos ${money(res.total)}</span><span>${left>=0?"Te quedan":"Te faltan"} ${money(Math.abs(left))}</span></div>`;
+  }
+  el.innerHTML=html;
+}
+
+function renderMonthly(r){
+  const el=$("#monthly");
+  const series=[...MONTHS].reverse().map(M=>{
+    const res=inflation(spend,M,"m",r);
+    return {label:cap(MES[M.month-1]).slice(0,3)+" "+String(M.year).slice(2), you:res?res.value:0, off:M.general.m[r]};
+  });
+  if(!CATS.some(c=>spend[c.id]>0)){ el.innerHTML=`<p class="empty">Cargá tus gastos en la calculadora para ver la evolución.</p>`; return; }
+  const sumYou=series.reduce((s,x)=>s*(1+x.you/100),1), sumOff=series.reduce((s,x)=>s*(1+x.off/100),1);
+  el.innerHTML = `${monthlyChart(series,Math.max(320,Math.min(640,el.clientWidth-44)))}
+    <div class="legend"><span><s style="background:var(--you)"></s>Tu inflación</span><span><s style="background:var(--indec)"></s>INDEC ${REG_SHORT[r]}</span></div>
+    <p class="verdict" style="margin-bottom:0">Sumando los ${series.length} meses, tus precios subieron ${pct((sumYou-1)*100)} y los del índice oficial ${pct((sumOff-1)*100)}.</p>`;
+}
+
+function renderRank(M,p,r){
+  $("#rankLead").textContent = `${periodText(M,p)}, ${REG_IN[r]}, según el INDEC. En negrita, los rubros en los que vos gastás.`;
+  const rows=CATS.map(c=>({name:c.name,c:c.c,v:M.data[c.id][p][r],mine:spend[c.id]>0})).sort((a,b)=>b.v-a.v);
+  const max=Math.max(...rows.map(x=>Math.abs(x.v)),0.1);
+  $("#rank").innerHTML = rows.map(x=>`<div class="rk${x.mine?" mine":""}"><span class="nm" title="${x.name}">${x.name}</span>
+    <div><div class="bar" style="width:${Math.abs(x.v)/max*100}%;background:${x.v<0?"var(--good)":x.c};opacity:${x.mine?1:.45}"></div></div>
+    <span class="v">${pct(x.v)}</span></div>`).join("")
+    + `<div class="rk" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px"><span class="nm"><b>Nivel general</b></span><div><div class="bar" style="width:${Math.abs(M.general[p][r])/max*100}%;background:var(--indec)"></div></div><span class="v">${pct(M.general[p][r])}</span></div>`;
+}
+
+function renderProfiles(M,p,r,res){
+  const off=M.general[p][r];
+  let html=Object.values(PRESETS).map(P=>{
+    const v=inflation(P.v,M,p,r).value;
+    return `<div class="panel prof"><h4>${P.label}</h4><div class="n">${pct(v)}</div>
+      <div class="who">${v>=off?`${pct(v-off).replace("%"," puntos")} por encima del INDEC`:`${pct(off-v).replace("%"," puntos")} por debajo del INDEC`}</div>
+      <p>${P.desc}</p></div>`;
+  }).join("");
+  if(res) html+=`<div class="panel prof you-card"><h4>Vos</h4><div class="n" style="color:var(--you-ink)">${pct(res.value)}</div>
+    <div class="who">INDEC ${REG_SHORT[r]}: ${pct(off)}</div><p>Con la canasta que cargaste en la calculadora.</p></div>`;
+  $("#profiles").innerHTML=html;
+}
+
 fillInputs(); update();
+
+/* ===================== FACTURAS ===================== */
+const LKEY="tu-inflacion-facturas";
+const DEFAULT_ITEMS=[["Alquiler","alq"],["Expensas","alq"],["Luz","ener"],["Gas","ener"],["Internet","com"],["Celular","com"],["Prepaga","prep"],["Carga de SUBE","tpub"],["Supermercado","alim"]];
+const uid=()=>"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const keyOf=(y,m)=>`${y}-${String(m).padStart(2,"0")}`;
+const parseKey=k=>{const [y,m]=k.split("-").map(Number);return {year:y,month:m};};
+const prevKey=k=>{const {year,month}=parseKey(k);return month===1?keyOf(year-1,12):keyOf(year,month-1);};
+const keyName=k=>{const {year,month}=parseKey(k);return cap(MES[month-1])+" "+year;};
+const keyShort=k=>{const {year,month}=parseKey(k);return cap(MES[month-1]).slice(0,3)+" "+String(year).slice(2);};
+const indecFor=(k)=>{const {year,month}=parseKey(k);return MONTHS.find(M=>M.year===year&&M.month===month)||null;};
+
+let ledger;
+try{ ledger=JSON.parse(localStorage.getItem(LKEY)||"null"); }catch(e){ ledger=null; }
+const now=new Date(), nextM=new Date(now.getFullYear(),now.getMonth()+1,1);
+if(!ledger||!Array.isArray(ledger.items)){
+  ledger={items:DEFAULT_ITEMS.map(([name,cat])=>({id:uid(),name,cat})),rec:{},sel:keyOf(now.getFullYear(),now.getMonth()+1)};
+}
+ledger.rec=ledger.rec||{};
+function lsave(){ try{ localStorage.setItem(LKEY,JSON.stringify(ledger)); }catch(e){} }
+
+function monthKeys(){ // desde enero 2026 hasta el mes que viene, más cualquier mes guardado
+  const set=new Set(Object.keys(ledger.rec));
+  let y=2026,m=1; const endY=nextM.getFullYear(), endM=nextM.getMonth()+1;
+  while(y<endY||(y===endY&&m<=endM)){ set.add(keyOf(y,m)); m++; if(m>12){m=1;y++;} }
+  return [...set].sort().reverse();
+}
+function fillLMonths(){
+  const sel=$("#lMonth"); sel.innerHTML="";
+  monthKeys().forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=keyName(k);sel.appendChild(o);});
+  if(!monthKeys().includes(ledger.sel)) ledger.sel=monthKeys()[0];
+  sel.value=ledger.sel;
+}
+const catOptions=cur=>CATS.map(c=>`<option value="${c.id}"${c.id===cur?" selected":""}>${c.name}</option>`).join("");
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+function renderLedgerRows(){
+  const k=ledger.sel, pk=prevKey(k);
+  $("#lPrevH").textContent=keyName(pk); $("#lCurH").textContent=keyName(k);
+  const box=$("#lrows"); box.innerHTML="";
+  ledger.items.forEach(it=>{
+    const row=document.createElement("div"); row.className="lrow"; row.dataset.id=it.id;
+    const pv=(ledger.rec[pk]||{})[it.id]||0, cv=(ledger.rec[k]||{})[it.id]||0;
+    row.innerHTML=`<div class="lname"><input class="nm" value="${esc(it.name)}" aria-label="Nombre del concepto"><select class="cat" aria-label="Rubro">${catOptions(it.cat)}</select></div>
+      <div class="money prev" data-label="${keyName(pk)}"><span>$</span><input inputmode="numeric" autocomplete="off" placeholder="0" value="${fmtIn(pv)}" aria-label="${esc(it.name)} en ${keyName(pk)}"></div>
+      <div class="money cur" data-label="${keyName(k)}"><span>$</span><input inputmode="numeric" autocomplete="off" placeholder="0" value="${fmtIn(cv)}" aria-label="${esc(it.name)} en ${keyName(k)}"></div>
+      <div class="lvar"><b></b><small></small></div>
+      <button type="button" class="del" aria-label="Quitar ${esc(it.name)}">×</button>`;
+    const setAmt=(key,inp)=>{const v=parse(inp.value);inp.value=fmtIn(v);ledger.rec[key]=ledger.rec[key]||{};if(v)ledger.rec[key][it.id]=v;else delete ledger.rec[key][it.id];recalcLedger();};
+    row.querySelector(".prev input").addEventListener("input",e=>setAmt(pk,e.target));
+    row.querySelector(".cur input").addEventListener("input",e=>setAmt(k,e.target));
+    row.querySelector(".nm").addEventListener("input",e=>{it.name=e.target.value;lsave();recalcLedger(false);});
+    row.querySelector(".cat").addEventListener("change",e=>{it.cat=e.target.value;recalcLedger();});
+    row.querySelector(".del").addEventListener("click",()=>{
+      ledger.items=ledger.items.filter(x=>x.id!==it.id);
+      Object.values(ledger.rec).forEach(r=>delete r[it.id]);
+      renderLedgerRows(); recalcLedger();
+    });
+    box.appendChild(row);
+  });
+  recalcLedger();
+}
+
+function ledgerMonth(k,r){ // variación de tus facturas en el mes k
+  const cur=ledger.rec[k]||{}, prev=ledger.rec[prevKey(k)]||{};
+  const M=indecFor(k);
+  const items=ledger.items.filter(it=>cur[it.id]>0&&prev[it.id]>0).map(it=>({
+    ...it, p:prev[it.id], c:cur[it.id], v:(cur[it.id]/prev[it.id]-1)*100,
+    ind: M&&M.data[it.cat]?M.data[it.cat].m[r]:null
+  }));
+  if(!items.length) return null;
+  const sp=items.reduce((s,x)=>s+x.p,0), sc=items.reduce((s,x)=>s+x.c,0);
+  const allInd=items.every(x=>x.ind!==null);
+  return {items, sp, sc, v:(sc/sp-1)*100, M,
+    off: M?M.general.m[r]:null,
+    asIndec: allInd? items.reduce((s,x)=>s+x.p*x.ind,0)/sp : null};
+}
+
+function recalcLedger(rerenderHist=true){
+  lsave();
+  const k=ledger.sel, r=state.region, res=ledger.items.length?ledgerMonth(k,r):null;
+  const M=indecFor(k);
+  // variación por fila
+  document.querySelectorAll("#lrows .lrow").forEach(row=>{
+    const it=ledger.items.find(x=>x.id===row.dataset.id); if(!it) return;
+    const c=(ledger.rec[k]||{})[it.id], p=(ledger.rec[prevKey(k)]||{})[it.id];
+    const b=row.querySelector(".lvar b"), sm=row.querySelector(".lvar small");
+    if(c&&p){const v=(c/p-1)*100;b.textContent=signed(v);b.className=v>0.05?"neg":v<-0.05?"pos":"";}
+    else{b.textContent="—";b.className="";}
+    const ind=M&&M.data[it.cat]?M.data[it.cat].m[r]:null;
+    sm.textContent=ind!==null?`INDEC ${pct(ind)}`:"";
+  });
+  // resumen
+  const out=$("#lOut"), pk=prevKey(k);
+  if(!res){
+    out.innerHTML=`<h3>Tus facturas de ${keyName(k).toLowerCase()}</h3><p class="empty">Completá al menos un concepto con lo que pagaste en ${keyName(pk).toLowerCase()} y en ${keyName(k).toLowerCase()} para ver cuánto te subió.</p>`;
+  } else {
+    const {year,month}=parseKey(k);
+    const pubMonth=MES[month%12];
+    const ups=[...res.items].sort((a,b)=>b.v-a.v).slice(0,3);
+    out.innerHTML=`<h3>Tus facturas de ${keyName(k).toLowerCase()}</h3>
+      <p class="sub">Contra ${keyName(pk).toLowerCase()}, en ${res.items.length} ${res.items.length===1?"concepto":"conceptos"}.</p>
+      <div class="versus">
+        <div><div class="big you">${pct(res.v)}</div><div class="who">Lo que subió lo que pagás</div></div>
+        <div>${res.off!==null?`<div class="big indec">${pct(res.off)}</div><div class="who">INDEC ${REG_SHORT[r]}, ${MES[month-1]}</div>`
+          :`<div class="who" style="margin-top:8px">El INDEC todavía no publicó la inflación de ${MES[month-1]}. Sale a mediados de ${pubMonth}${month===12?" del año que viene":""}, y ahí aparece la comparación.</div>`}</div>
+      </div>
+      <p class="verdict">Este mes pagaste <b>${money(res.sc-res.sp)}</b> ${res.sc>=res.sp?"más":"menos"} que el anterior por lo mismo (${money(res.sp)} contra ${money(res.sc)}).
+      ${res.asIndec!==null?` Si cada factura hubiera subido lo que marca el INDEC para su rubro, la suba habría sido de ${pct(res.asIndec)}.`:""}</p>
+      <h3 style="font-size:.95rem;margin-top:8px">Lo que más te subió</h3>
+      <ul class="ups">${ups.map(x=>`<li><span>${esc(x.name)}</span><b class="${x.v>0.05?"neg":x.v<-0.05?"pos":""}">${signed(x.v)}</b></li>`).join("")}</ul>`;
+  }
+  if(rerenderHist) renderLedgerHist();
+}
+
+function histChart(series,W=640){
+  const H=230,padL=10,padR=10,padT=22,padB=30, iw=W-padL-padR, ih=H-padT-padB;
+  const vals=series.flatMap(s=>[s.you,s.off??0]).concat([0]);
+  let max=Math.max(...vals)*1.18||1, min=Math.min(0,Math.min(...vals)*1.18);
+  const y=v=>padT+(max-v)/(max-min)*ih;
+  const gw=iw/series.length, bw=Math.min(40,gw*0.3); let g="";
+  series.forEach((s,i)=>{
+    const cx=padL+gw*i+gw/2;
+    const bars=[[s.you,"var(--you)",s.off===null?-bw/2:-bw-2]];
+    if(s.off!==null) bars.push([s.off,"var(--indec)",2]);
+    bars.forEach(([v,col,dx])=>{const top=y(Math.max(v,0)),h=Math.abs(y(v)-y(0));
+      g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"/><text x="${cx+dx+bw/2}" y="${v>=0?top-5:top+h+13}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`;});
+    g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="12" fill="var(--muted)">${s.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Suba mensual de tus facturas comparada con el INDEC"><line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>${g}</svg>`;
+}
+function renderLedgerHist(){
+  const r=state.region;
+  const series=monthKeys().slice().reverse().map(k=>{const x=ledgerMonth(k,r);return x?{label:keyShort(k),you:x.v,off:x.off}:null;}).filter(Boolean);
+  const el=$("#lHist");
+  if(series.length<2){
+    el.innerHTML=`<h3>Tu serie de inflación</h3><p class="empty" style="padding-bottom:0">Cuando tengas facturas cargadas en al menos tres meses seguidos, acá vas a ver tu inflación mes a mes. Tip: el mes que viene entrá, elegí el mes nuevo y solo completá la columna de la derecha, porque la del mes anterior ya queda guardada.</p>`;
+    return;
+  }
+  const acc=(series.reduce((s,x)=>s*(1+x.you/100),1)-1)*100;
+  el.innerHTML=`<h3>Tu serie de inflación</h3><p class="sub">Suba de tus facturas en cada mes que cargaste.</p>${histChart(series,Math.max(320,Math.min(640,el.clientWidth-44)))}
+    <div class="legend"><span><s style="background:var(--you)"></s>Tus facturas</span><span><s style="background:var(--indec)"></s>INDEC ${REG_SHORT[r]}</span></div>
+    <p class="verdict" style="margin-bottom:0">En los ${series.length} meses que registraste, lo que pagás subió ${pct(acc)} acumulado.</p>`;
+}
+
+$("#lMonth").addEventListener("change",e=>{ledger.sel=e.target.value;renderLedgerRows();});
+$("#lRegion").addEventListener("change",e=>{state.region=+e.target.value;$("#region").value=state.region;update();recalcLedger();});
+$("#region").addEventListener("change",()=>{$("#lRegion").value=state.region;recalcLedger();});
+$("#lAdd").addEventListener("click",()=>{
+  ledger.items.push({id:uid(),name:"Nuevo concepto",cat:"hogar"}); renderLedgerRows();
+  const last=[...document.querySelectorAll("#lrows .nm")].pop(); if(last){last.focus();last.select();}
+});
+$("#lReset").addEventListener("click",()=>{
+  if(!confirm("¿Borrar todas las facturas guardadas? Esto no se puede deshacer.")) return;
+  ledger.rec={}; ledger.items=DEFAULT_ITEMS.map(([name,cat])=>({id:uid(),name,cat})); renderLedgerRows();
+});
+$("#lExport").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(ledger,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="mis-facturas-tu-inflacion.json";
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+});
+$("#lImport").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+      const d=JSON.parse(rd.result);
+      if(!Array.isArray(d.items)||typeof d.rec!=="object") throw 0;
+      d.items=d.items.filter(it=>it&&it.id&&CATS.some(c=>c.id===it.cat)).map(it=>({id:String(it.id),name:String(it.name||"Concepto"),cat:it.cat}));
+      ledger={items:d.items,rec:d.rec,sel:d.sel||ledger.sel}; fillLMonths(); renderLedgerRows();
+    }catch(err){ alert("Ese archivo no parece una copia de Tu inflación."); }
+    e.target.value="";
+  };
+  rd.readAsText(f);
+});
+$("#lRegion").value=state.region;
+fillLMonths(); renderLedgerRows();
 </script>
 </body>
 </html>
