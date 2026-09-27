@@ -214,6 +214,8 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
 .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
 .tools .note{font-size:.82rem;color:var(--muted)}
+.btn .ic{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.18em;margin-right:6px}
+.btn[disabled]{opacity:.6;cursor:progress}
 .ups{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:.92rem}
 .ups li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:6px}
 </style>
@@ -527,6 +529,8 @@ const ICONS = {
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+  share:'<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/>',
   moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'
 };
 const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]||""}</svg>`;
@@ -745,7 +749,12 @@ function renderMain(res,off,r){
     ${marimekko(res.rows,you,off)}
     <div class="legend"><span><i style="border-color:var(--you);border-top-width:3px"></i>Tu inflación</span><span><i style="border-color:var(--indec);border-top-style:dashed"></i>INDEC</span><span>Ancho: peso en tu gasto</span><span>Alto: cuánto subió</span></div>
     <div class="tablebox"><table><thead><tr><th>Rubro</th><th>Tu gasto</th><th>Suba</th><th>Aporte</th></tr></thead>
-    <tbody>${[...res.rows].sort((a,b)=>b.aporte-a.aporte).map(x=>`<tr><td><span class="sw" style="background:${x.c}"></span>${x.name}</td><td>${pct(x.share*100)}</td><td>${pct(x.v)}</td><td>${x.aporte.toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2})} pp</td></tr>`).join("")}</tbody></table></div>`;
+    <tbody>${[...res.rows].sort((a,b)=>b.aporte-a.aporte).map(x=>`<tr><td><span class="sw" style="background:${x.c}"></span>${x.name}</td><td>${pct(x.share*100)}</td><td>${pct(x.v)}</td><td>${x.aporte.toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2})} pp</td></tr>`).join("")}</tbody></table></div>
+    <div class="tools">
+      <button type="button" class="btn primary" data-img="download">${icon("image")}Descargar mi imagen</button>
+      ${navigator.canShare?`<button type="button" class="btn" data-img="share">${icon("share")}Compartir</button>`:""}
+      <span class="note">Una imagen con tu inflación, la del INDEC de tu región y tus rubros, lista para subir a redes.</span>
+    </div>`;
   $("#peekYou").textContent=pct(you);
 }
 
@@ -838,6 +847,107 @@ function renderProfiles(M,p,r,res){
 }
 
 fillInputs(); update();
+
+/* ===================== IMAGEN PARA COMPARTIR ===================== */
+const loadImg = src => new Promise(ok=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=()=>ok(null); im.src=src; });
+const mixHex = (a,b,t) => { // mezcla dos colores #rrggbb
+  const h=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));
+  const A=h(a), B=h(b); return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join("");
+};
+function imageTitle(M,p){
+  if(p==="m") return `Mi inflación de ${MES[M.month-1]} ${M.year}`;
+  if(p==="a") return `Mi inflación acumulada en ${M.year}`;
+  return `Mi inflación de los últimos 12 meses`;
+}
+async function makeShareImage(){
+  const M=MONTHS[state.mi], r=state.region, p=state.period;
+  const res=inflation(spend,M,p,r); if(!res) return null;
+  const off=M.general[p][r], you=res.value, diff=you-off;
+  const cs=getComputedStyle(document.documentElement), v=n=>cs.getPropertyValue(n).trim();
+  const C={bg:v("--bg"),surface:v("--surface"),ink:v("--ink"),muted:v("--muted"),line:v("--line"),you:v("--you"),youInk:v("--you-ink"),indec:v("--indec")};
+  const rows=[...res.rows].sort((a,b)=>b.aporte-a.aporte);
+  const W=1080, P=70, rowH=76, top=600, H=top+rows.length*rowH+190;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const g=cv.getContext("2d");
+  try{ await document.fonts.load("800 40px Archivo"); await document.fonts.load("600 40px Archivo"); }catch(e){}
+  const font=(w,px,wide)=>{ g.font=`${w} ${px}px Archivo, system-ui, sans-serif`; if("fontStretch" in g) g.fontStretch=wide?"expanded":"normal"; };
+  const rr=(x,y,w,h,rad)=>{ g.beginPath(); g.roundRect?g.roundRect(x,y,w,h,rad):g.rect(x,y,w,h); };
+  const shrink=(t,w,px,maxW,wide)=>{ font(w,px,wide); while(px>20&&g.measureText(t).width>maxW){ px-=2; font(w,px,wide); } };
+  const fit=(t,maxW)=>{ if(g.measureText(t).width<=maxW) return t; while(t.length>1&&g.measureText(t+"…").width>maxW) t=t.slice(0,-1); return t+"…"; };
+  const icons=await Promise.all(rows.map(x=>loadImg("data:image/svg+xml;charset=utf-8,"+encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="${mixHex(x.c,C.ink,.28)}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[x.id]}</svg>`))));
+
+  // fondo y tarjeta
+  g.fillStyle=C.bg; g.fillRect(0,0,W,H);
+  g.fillStyle=C.surface; rr(30,30,W-60,H-60,36); g.fill();
+  g.strokeStyle=C.line; g.lineWidth=2; g.stroke();
+  g.fillStyle=C.you; rr(30,30,W-60,14,[36,36,0,0]); g.fill();
+
+  // encabezado
+  g.textBaseline="alphabetic"; g.textAlign="left";
+  const sub=periodText(M,p).replace(/^Suba de precios de /,"").replace(/^Suba /,"");
+  font(600,28); g.fillStyle=C.muted; g.fillText(fit(cap(sub)+` · ${REG_SHORT[r]}`,W-2*P),P,122);
+  shrink(imageTitle(M,p),800,62,W-2*P,true); g.fillStyle=C.ink; g.fillText(imageTitle(M,p),P,196);
+
+  const bigW=W/2-P-40;
+  shrink(pct(you),800,150,bigW,true); g.fillStyle=C.youInk; g.fillText(pct(you),P,380);
+  font(600,30); g.fillStyle=C.muted; g.fillText("Mi inflación",P,428);
+  const x2=W/2+30;
+  shrink(pct(off),800,150,bigW,true); g.fillStyle=C.indec; g.fillText(pct(off),x2,380);
+  font(600,30); g.fillStyle=C.muted; g.fillText(`INDEC ${REG_SHORT[r]}`,x2,428);
+
+  const same=Math.abs(diff)<0.05*Math.max(Math.abs(off),1);
+  font(700,34); g.fillStyle=C.ink;
+  g.fillText(same?"Prácticamente igual a la oficial":`${pct(Math.abs(diff)).replace("%"," puntos")} ${diff>0?"por encima":"por debajo"} del índice oficial`,P,500);
+
+  g.strokeStyle=C.line; g.lineWidth=2; g.beginPath(); g.moveTo(P,540); g.lineTo(W-P,540); g.stroke();
+  font(600,22); g.fillStyle=C.muted; g.fillText("RUBRO Y PESO EN MI GASTO",P,578);
+  g.textAlign="right"; g.fillText("CUÁNTO SUBIÓ",W-P,578); g.textAlign="left";
+
+  // barras por rubro
+  const bx0=610, bx1=W-P-130;
+  const vals=rows.map(x=>x.v).concat([you,off,0]);
+  const vmin=Math.min(0,...vals), vmax=Math.max(...vals)*1.08||1;
+  const X=val=>bx0+(val-vmin)/(vmax-vmin)*(bx1-bx0);
+  rows.forEach((x,i)=>{
+    const y=top+i*rowH+10;
+    g.fillStyle=x.c+"2E"; rr(P,y,56,56,14); g.fill();
+    if(icons[i]) g.drawImage(icons[i],P+12,y+12,32,32);
+    font(600,27); g.fillStyle=C.ink; g.fillText(fit(x.name,bx0-P-110),P+76,y+26);
+    font(400,22); g.fillStyle=C.muted; g.fillText(`${pct(x.share*100)} de mi gasto`,P+76,y+56);
+    g.fillStyle=x.c; const a=X(Math.min(0,x.v)), b=X(Math.max(0,x.v)); rr(a,y+18,Math.max(b-a,3),22,5); g.fill();
+    font(700,29); g.fillStyle=C.ink; g.textAlign="right"; g.fillText(pct(x.v),W-P,y+38); g.textAlign="left";
+  });
+  const yTop=top, yBot=top+rows.length*rowH;
+  g.strokeStyle=C.ink; g.lineWidth=2; g.beginPath(); g.moveTo(X(0),yTop); g.lineTo(X(0),yBot); g.stroke();
+  g.strokeStyle=C.indec; g.lineWidth=3; g.setLineDash([10,8]); g.beginPath(); g.moveTo(X(off),yTop-6); g.lineTo(X(off),yBot); g.stroke(); g.setLineDash([]);
+  g.strokeStyle=C.you; g.lineWidth=4; g.beginPath(); g.moveTo(X(you),yTop-6); g.lineTo(X(you),yBot); g.stroke();
+
+  // pie
+  const fy=yBot+40;
+  g.fillStyle=C.you; g.fillRect(P,fy,34,5); font(600,22); g.fillStyle=C.muted; g.fillText("Mi inflación",P+46,fy+8);
+  g.strokeStyle=C.indec; g.lineWidth=3; g.setLineDash([10,8]); g.beginPath(); g.moveTo(P+230,fy+3); g.lineTo(P+264,fy+3); g.stroke(); g.setLineDash([]);
+  g.fillText(`INDEC ${REG_SHORT[r]}`,P+276,fy+8);
+  font(700,26); g.fillStyle=C.ink; g.fillText("Calculala vos: Tu inflación no es la del INDEC",P,fy+72);
+  font(400,21); g.fillStyle=C.muted; g.fillText(`Datos: INDEC, IPC ${MES[M.month-1]} ${M.year}. Hecho por estudiantes de Economía de la UBA.`,P,fy+106);
+
+  return await new Promise(ok=>cv.toBlob(ok,"image/png"));
+}
+$("#out").addEventListener("click", async e=>{
+  const btn=e.target.closest("[data-img]"); if(!btn) return;
+  btn.disabled=true;
+  try{
+    const blob=await makeShareImage(); if(!blob) return;
+    const M=MONTHS[state.mi], name=`mi-inflacion-${MES[M.month-1]}-${M.year}.png`;
+    const file=new File([blob],name,{type:"image/png"});
+    if(btn.dataset.img==="share" && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:imageTitle(M,state.period)}); }catch(err){}
+    } else {
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }
+  } finally { btn.disabled=false; }
+});
 
 /* ===================== FACTURAS ===================== */
 const LKEY="tu-inflacion-facturas";
