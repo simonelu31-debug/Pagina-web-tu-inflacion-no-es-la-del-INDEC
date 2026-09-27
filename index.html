@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tu inflación — calculadora de inflación personal</title>
 <meta name="description" content="Calculá tu inflación personal según lo que gastás, compará con el INDEC y fijate si tu sueldo le ganó a tus precios.">
+<script>
+try{const t=localStorage.getItem("tu-inflacion-tema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&display=swap" rel="stylesheet">
@@ -12,17 +15,20 @@
 :root{
   --bg:#EDF0F3; --surface:#FFFFFF; --ink:#18212C; --muted:#5B6878; --line:#D3D9E0;
   --you:#E0A526; --you-ink:#8A5F00; --indec:#2F5D8A; --good:#2E7D5B; --bad:#B5443C; --field:#F6F8FA;
+  color-scheme:light;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
+    color-scheme:dark;
     --bg:#121820; --surface:#1B232E; --ink:#E8EDF2; --muted:#9AA7B6; --line:#2E3946;
     --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --good:#6CC79A; --bad:#EF8A80; --field:#222C38;
   }
 }
 :root[data-theme="dark"]{
+  color-scheme:dark;
   --bg:#121820; --surface:#1B232E; --ink:#E8EDF2; --muted:#9AA7B6; --line:#2E3946;
   --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --good:#6CC79A; --bad:#EF8A80; --field:#222C38;
 }
@@ -39,8 +45,18 @@ nav.top{
   position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);
   border-bottom:1px solid var(--line);
 }
-nav.top .wrap{display:flex;gap:6px;align-items:center;overflow-x:auto;padding-top:10px;padding-bottom:10px;white-space:nowrap}
-nav.top .brand{font-stretch:125%;font-weight:800;margin-right:14px}
+nav.top .wrap{display:flex;gap:10px;align-items:center;padding-top:10px;padding-bottom:10px}
+nav.top .brand{font-stretch:125%;font-weight:800;margin-right:4px;white-space:nowrap;flex-shrink:0}
+nav.top .links{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;min-width:0;flex:1;scrollbar-width:none}
+nav.top .links::-webkit-scrollbar{display:none}
+.theme{
+  flex-shrink:0;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  font:inherit;font-size:.85rem;font-weight:600;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+}
+.theme:hover{border-color:var(--ink)}
+.theme svg{width:18px;height:18px}
+@media (max-width:640px){.theme span{display:none}.theme{padding:7px}}
 nav.top a{color:var(--muted);text-decoration:none;font-size:.9rem;padding:5px 10px;border-radius:999px}
 nav.top a:hover{color:var(--ink);background:var(--surface)}
 header.hero{padding:40px 0 28px;max-width:64ch}
@@ -53,7 +69,7 @@ header.hero p{margin:0;color:var(--muted);font-size:1.05rem}
 .stamp b{color:var(--ink)}
 section.block{padding:44px 0;border-top:1px solid var(--line)}
 section.block:first-of-type{border-top:0;padding-top:0}
-h2.sec{font-stretch:120%;font-weight:800;font-size:clamp(1.6rem,4vw,2.3rem);letter-spacing:-.01em;line-height:1.05;margin:0 0 8px}
+h2.sec{display:flex;align-items:center;gap:.45em;font-stretch:120%;font-weight:800;font-size:clamp(1.6rem,4vw,2.3rem);letter-spacing:-.01em;line-height:1.05;margin:0 0 8px}
 p.lead{color:var(--muted);max-width:62ch;margin:0 0 24px}
 .grid{display:grid;gap:24px}
 @media (min-width:900px){
@@ -80,12 +96,13 @@ select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visi
 }
 .presets button:hover{border-color:var(--ink)}
 .row{
-  display:grid;grid-template-columns:minmax(0,1fr) 9.5rem;gap:12px;align-items:center;
+  display:grid;grid-template-columns:2.25rem minmax(0,1fr) 9.5rem;gap:12px;align-items:center;
   padding:9px 0;border-top:1px solid var(--line);
 }
 .row:first-of-type{border-top:0}
 .row .name{font-weight:600;font-size:.95rem}
 .row .hint{display:block;color:var(--muted);font-size:.8rem;font-weight:400}
+@media (max-width:420px){.row{grid-template-columns:2.25rem minmax(0,1fr) 8rem;gap:10px}}
 .money{position:relative}
 .money span{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 .money input{padding-left:24px;text-align:right}
@@ -108,6 +125,24 @@ td{padding:7px 4px;text-align:right;border-bottom:1px solid var(--line)}
 td .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;vertical-align:-1px}
 .empty{color:var(--muted);padding:12px 0}
 
+/* íconos */
+.ic{display:block;width:100%;height:100%}
+.secic{
+  flex-shrink:0;display:inline-grid;place-items:center;width:1.3em;height:1.3em;border-radius:.32em;
+  background:color-mix(in srgb,var(--you) 22%,transparent);color:var(--you-ink);
+}
+.secic .ic{width:62%;height:62%}
+h3 .secic{font-size:1.25rem;margin-right:.35em;vertical-align:-.3em;display:inline-grid}
+.catic{
+  display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:10px;flex-shrink:0;
+  background:color-mix(in srgb,var(--c) 16%,transparent);
+  color:color-mix(in srgb,var(--c) 72%,var(--ink));
+}
+.catic .ic{width:58%;height:58%}
+.catic.sm{display:inline-grid;width:1.45rem;height:1.45rem;border-radius:6px;vertical-align:middle;margin-right:7px}
+.presets button .ic{display:inline-block;width:1em;height:1em;vertical-align:-.15em;margin-right:5px}
+.prof h4{display:flex;align-items:center;gap:8px}
+
 /* sueldo */
 .income-in{display:grid;gap:14px}
 .income-in .money input{text-align:right}
@@ -123,11 +158,12 @@ td .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-righ
 /* ranking */
 .rank{display:grid;gap:6px}
 .rk{display:grid;grid-template-columns:minmax(0,13rem) minmax(0,1fr) 4.2rem;gap:10px;align-items:center;font-size:.92rem}
-@media (max-width:560px){.rk{grid-template-columns:minmax(0,8.5rem) minmax(0,1fr) 3.8rem;font-size:.85rem}}
+@media (max-width:560px){.rk{grid-template-columns:minmax(0,10rem) minmax(0,1fr) 3.6rem;gap:8px;font-size:.85rem}}
 .rk .bar{height:18px;border-radius:3px;min-width:2px}
 .rk .v{text-align:right;font-weight:600}
 .rk.mine .nm{font-weight:700}
 .rk .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inc-note{font-size:.82rem;color:var(--muted);margin:-6px 0 0}
 .rk .zero{position:relative}
 /* perfiles */
 .profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
@@ -158,6 +194,8 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
 .lrow{padding:10px 0;border-bottom:1px solid var(--line)}
 .lname{display:flex;flex-direction:column;gap:4px;min-width:0}
 .lname input{font-weight:600;padding:6px 8px}
+.lnm-row{display:flex;align-items:center;gap:8px;min-width:0}
+.lnm-row .catic{width:1.9rem;height:1.9rem;border-radius:8px}
 .lname select{font-size:.8rem;padding:4px 6px;color:var(--muted)}
 .lvar{text-align:right;line-height:1.2}
 .lvar b{display:block;font-size:1rem}
@@ -184,6 +222,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
 <nav class="top" aria-label="Secciones">
   <div class="wrap">
     <span class="brand">Tu inflación</span>
+    <div class="links">
     <a href="#calculadora">Calculadora</a>
     <a href="#facturas">Tus facturas</a>
     <a href="#sueldo">Tu sueldo</a>
@@ -191,6 +230,8 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     <a href="#que-subio">Qué subió</a>
     <a href="#perfiles">Perfiles</a>
     <a href="#metodologia">Cómo se calcula</a>
+    </div>
+    <button type="button" class="theme" id="themeBtn"></button>
   </div>
 </nav>
 
@@ -205,7 +246,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
   <section class="block" id="calculadora">
     <div class="grid two">
       <div class="panel">
-        <h3>Tus gastos de un mes típico</h3>
+        <h3><span class="secic" data-icon="calc"></span>Tus gastos de un mes típico</h3>
         <p class="sub">No hace falta exactitud: con montos aproximados alcanza. Lo que importa es la proporción entre rubros.</p>
         <div class="controls">
           <label class="ctl">Mes del informe
@@ -240,7 +281,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
       </div>
 
       <div class="panel sticky" id="resultado" aria-live="polite">
-        <h3>Resultado</h3>
+        <h3><span class="secic" data-icon="chart"></span>Resultado</h3>
         <p class="sub" id="periodLabel"></p>
         <div id="out"></div>
       </div>
@@ -250,7 +291,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
 
   <!-- 1b. FACTURAS -->
   <section class="block" id="facturas">
-    <h2 class="sec">Tu inflación con tus facturas reales</h2>
+    <h2 class="sec"><span class="secic" data-icon="receipt"></span>Tu inflación con tus facturas reales</h2>
     <p class="lead">¿Te llegó la factura de internet de este mes? Anotá cuánto pagaste en cada cosa este mes y el anterior, y calculamos cuánto subió lo que vos pagás, sin estimaciones. Cada mes queda guardado en tu navegador, así con el tiempo armás tu propia serie.</p>
     <div class="grid two">
       <div class="panel">
@@ -281,14 +322,18 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
 
   <!-- 2. SUELDO -->
   <section class="block" id="sueldo">
-    <h2 class="sec">¿Tu sueldo le ganó a tus precios?</h2>
-    <p class="lead">Cargá cuánto cobrás ahora y cuánto cobrabas al inicio del período que elegiste arriba. Lo comparamos contra tu inflación y contra la oficial. Estos datos quedan solo en tu navegador.</p>
+    <h2 class="sec"><span class="secic" data-icon="wallet"></span>¿Tu sueldo le ganó a tus precios?</h2>
+    <p class="lead">Cargá cuánto cobrás ahora, elegí con qué mes querés comparar y cuánto cobrabas en ese momento. Lo comparamos contra tu inflación y contra la oficial. Estos datos quedan solo en tu navegador.</p>
     <div class="grid two">
       <div class="panel income-in">
         <label class="ctl">Ingreso mensual neto actual
           <div class="money"><span>$</span><input id="incNow" inputmode="numeric" autocomplete="off" placeholder="0"></div>
         </label>
-        <label class="ctl"><span id="incPrevLabel">Ingreso neto antes</span>
+        <label class="ctl">Comparar con tu ingreso de
+          <select id="incBase"></select>
+        </label>
+        <p class="inc-note" id="incNote"></p>
+        <label class="ctl"><span id="incPrevLabel">Ingreso neto de ese mes</span>
           <div class="money"><span>$</span><input id="incPrev" inputmode="numeric" autocomplete="off" placeholder="0"></div>
         </label>
         <p class="sub" style="margin:0">Si cobrás en negro, por changas o sos monotributista, poné un promedio de lo que te entra por mes.</p>
@@ -299,28 +344,28 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
 
   <!-- 3. MES A MES -->
   <section class="block" id="mes-a-mes">
-    <h2 class="sec">Tu inflación, mes a mes</h2>
+    <h2 class="sec"><span class="secic" data-icon="calendar"></span>Tu inflación, mes a mes</h2>
     <p class="lead">Con tu misma canasta, así se movieron tus precios en cada informe del INDEC que tenemos cargado, al lado del índice oficial de tu región.</p>
     <div class="panel" id="monthly"></div>
   </section>
 
   <!-- 4. QUÉ SUBIÓ -->
   <section class="block" id="que-subio">
-    <h2 class="sec">Qué subió más</h2>
+    <h2 class="sec"><span class="secic" data-icon="trend"></span>Qué subió más</h2>
     <p class="lead" id="rankLead"></p>
     <div class="panel"><div class="rank" id="rank"></div></div>
   </section>
 
   <!-- 5. PERFILES -->
   <section class="block" id="perfiles">
-    <h2 class="sec">Mismos precios, distintas inflaciones</h2>
+    <h2 class="sec"><span class="secic" data-icon="people"></span>Mismos precios, distintas inflaciones</h2>
     <p class="lead">Tres hogares imaginarios en tu región, con los mismos precios pero canastas distintas. Sirve para ver por qué la inflación que siente cada uno puede ser tan diferente del número oficial.</p>
     <div class="profiles" id="profiles"></div>
   </section>
 
   <!-- 6. METODOLOGÍA -->
   <section class="block" id="metodologia">
-    <h2 class="sec">Cómo se calcula</h2>
+    <h2 class="sec"><span class="secic" data-icon="info"></span>Cómo se calcula</h2>
     <details open>
       <summary>La fórmula</summary>
       <p>Tu inflación es un promedio ponderado: cada rubro pesa según la parte de tu gasto que se lleva, y se multiplica por cuánto subieron los precios de ese rubro en tu región según el INDEC. Es la misma lógica del IPC, pero con tus ponderaciones en lugar de las de la canasta oficial.</p>
@@ -333,6 +378,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     </details>
     <details>
       <summary>Tu sueldo en términos reales</summary>
+      <p>Para comparar contra el mes que elijas, encadenamos los datos del INDEC: la variación mensual, la acumulada en el año y la interanual permiten armar un índice de precios para cada rubro y ver cuánto subió entre ese mes y el último dato publicado. Por eso solo aparecen los meses que esos informes permiten calcular; los más recientes se habilitan cuando el INDEC publica la inflación que falta.</p>
       <p>La variación real se calcula como (1 + suba de tu sueldo) / (1 + inflación) − 1. Por ejemplo, si tu sueldo subió 30% y tu inflación fue 35%, tu poder de compra cayó cerca de 3,7%, no 5%. El "sueldo que necesitarías" es tu ingreso anterior ajustado por tu inflación.</p>
     </details>
     <details>
@@ -445,13 +491,65 @@ const CATS = [
   {id:"alc",  name:"Alcohol y cigarrillos", hint:"", c:"#7D5A4F"}
 ];
 const PRESETS = {
-  estudiante:{label:"Estudiante que alquila", desc:"Alquila un monoambiente, viaja en colectivo y come afuera seguido.",
+  estudiante:{icon:"edu", label:"Estudiante que alquila", desc:"Alquila un monoambiente, viaja en colectivo y come afuera seguido.",
     v:{alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000}},
-  jubilada:{label:"Jubilada con casa propia", desc:"Paga expensas pero no alquiler, gasta mucho en comida y remedios.",
+  jubilada:{icon:"alq", label:"Jubilada con casa propia", desc:"Paga expensas pero no alquiler, gasta mucho en comida y remedios.",
     v:{alim:380000,alq:60000,ener:70000,tpub:15000,auto:0,prep:0,rem:90000,com:25000,rest:20000,rec:20000,edu:0,ropa:30000,hogar:40000,cuid:30000,alc:10000}},
-  familia:{label:"Familia con auto", desc:"Casa propia, auto, prepaga y colegio privado para los chicos.",
+  familia:{icon:"auto", label:"Familia con auto", desc:"Casa propia, auto, prepaga y colegio privado para los chicos.",
     v:{alim:900000,alq:0,ener:110000,tpub:20000,auto:250000,prep:350000,rem:50000,com:60000,rest:150000,rec:120000,edu:300000,ropa:150000,hogar:90000,cuid:70000,alc:40000}}
 };
+
+/* ===================== íconos (trazos en una grilla de 24x24) ===================== */
+const ICONS = {
+  alim:'<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.2a1.5 1.5 0 0 0 1.5 1.1h8.6a1.5 1.5 0 0 0 1.4-1.1L21 7H6.2"/>',
+  alq:'<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>',
+  ener:'<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
+  tpub:'<rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 10h16"/><path d="M8 13.5h.01M16 13.5h.01"/><path d="M7 17v3M17 17v3"/>',
+  auto:'<path d="M3 16v-3l2.2-5.2A2 2 0 0 1 7 6.5h10a2 2 0 0 1 1.8 1.3L21 13v3H3z"/><path d="M3 13h18"/><circle cx="7.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/>',
+  prep:'<path d="M12 20.5s-7.3-4.4-9-9.1C1.8 8 4 4.5 7.4 4.5c2 0 3.6 1.1 4.6 2.6 1-1.5 2.6-2.6 4.6-2.6 3.4 0 5.6 3.5 4.4 6.9-1.7 4.7-9 9.1-9 9.1z"/><path d="M12 9.5v5M9.5 12h5"/>',
+  rem:'<rect x="2.5" y="8.5" width="19" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="m9.5 9.5 5 5"/>',
+  com:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18h2"/>',
+  rest:'<path d="M7 3v18M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 21V3c-2 1.5-3 4-3 7v3h3"/>',
+  rec:'<path d="M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/><path d="M14 6v2M14 11v2M14 16v2"/>',
+  edu:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/><path d="M22 9v6"/>',
+  ropa:'<path d="M8 3 3 6l2 4 2-1v12h10V9l2 1 2-4-5-3a4 4 0 0 1-8 0z"/>',
+  hogar:'<path d="M4 11V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/><path d="M2 13a2 2 0 0 1 4 0v2h12v-2a2 2 0 0 1 4 0v5H2z"/><path d="M5 18v2M19 18v2"/>',
+  cuid:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20M8.1 15.9 20 4"/>',
+  alc:'<path d="M7 3h10l-.5 6a4.5 4.5 0 0 1-9 0z"/><path d="M12 13.5V21M8 21h8"/>',
+  calc:'<rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 6.5h8v3H8z"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 17h.01M12 17h.01M15.5 17h.01"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  receipt:'<path d="M5 3h14v18l-2.3-1.5L14.3 21 12 19.5 9.7 21l-2.4-1.5L5 21z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  wallet:'<path d="M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M16.5 14h.01"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  trend:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  people:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a5 5 0 0 1 6 4.8"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'
+};
+const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]||""}</svg>`;
+const catIcon = (id,cls="") => { const c=CATS.find(x=>x.id===id); return `<span class="catic ${cls}" style="--c:${c.c}" aria-hidden="true">${icon(id)}</span>`; };
+document.querySelectorAll("[data-icon]").forEach(el=>{ el.innerHTML=icon(el.dataset.icon); el.setAttribute("aria-hidden","true"); });
+
+/* ===================== modo día / noche ===================== */
+const themeBtn = document.getElementById("themeBtn");
+const darkMQ = matchMedia("(prefers-color-scheme: dark)");
+const currentTheme = () => document.documentElement.dataset.theme || (darkMQ.matches ? "dark" : "light");
+function paintThemeBtn(){
+  const dark = currentTheme()==="dark";
+  themeBtn.innerHTML = icon(dark?"sun":"moon") + `<span>${dark?"Modo día":"Modo noche"}</span>`;
+  themeBtn.setAttribute("aria-label", dark ? "Cambiar a modo día" : "Cambiar a modo noche");
+}
+themeBtn.addEventListener("click",()=>{
+  const next = currentTheme()==="dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try{ localStorage.setItem("tu-inflacion-tema", next); }catch(e){}
+  paintThemeBtn();
+});
+darkMQ.addEventListener("change", paintThemeBtn);
+paintThemeBtn();
 
 /* ===================== utilidades ===================== */
 const MES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -471,10 +569,45 @@ function periodText(M,p){
   if(p==="a") return `Suba acumulada entre diciembre de ${M.year-1} y ${MES[M.month-1]} de ${M.year}`;
   return `Suba entre ${MES[M.month-1]} de ${M.year-1} y ${MES[M.month-1]} de ${M.year}`;
 }
-function prevIncomeLabel(M,p){
-  if(p==="m") return `Ingreso neto de ${MES[(M.month+10)%12]}`;
-  if(p==="a") return `Ingreso neto de diciembre de ${M.year-1}`;
-  return `Ingreso neto de ${MES[M.month-1]} de ${M.year-1}`;
+/* Índice de precios encadenado: con las variaciones mensual (m), acumulada (a) e
+   interanual (y) de cada informe se arma un nivel de precios por mes, para poder
+   comparar cualquier mes que esos datos alcancen contra el último publicado.
+   Los meses se numeran como año*12 + (mes-1). */
+const mnum = (y,m) => y*12 + (m-1);
+const mnumName = k => cap(MES[k%12]) + " " + Math.floor(k/12);
+function priceLevels(get){ // get(M,p) -> variación en %; devuelve Map mes -> nivel
+  const L = new Map([[mnum(MONTHS[0].year-1,12), 1]]);
+  let changed = true;
+  while(changed){
+    changed = false;
+    MONTHS.forEach(M=>{
+      const k = mnum(M.year,M.month);
+      [[mnum(M.year-1,12),"a"],[k-1,"m"],[k-12,"y"]].forEach(([b,p])=>{
+        const f = 1 + get(M,p)/100;
+        if(L.has(b) && !L.has(k)){ L.set(k, L.get(b)*f); changed = true; }
+        else if(L.has(k) && !L.has(b)){ L.set(b, L.get(k)/f); changed = true; }
+      });
+    });
+  }
+  return L;
+}
+function regionLevels(r){
+  const lv = {general: priceLevels((M,p)=>M.general[p][r])};
+  CATS.forEach(c=> lv[c.id] = priceLevels((M,p)=>M.data[c.id][p][r]));
+  return lv;
+}
+function inflationBetween(basket, lv, from, to){
+  const total = CATS.reduce((s,c)=>s+(basket[c.id]||0),0);
+  if(!total) return null;
+  return CATS.reduce((s,c)=> s + (basket[c.id]||0)/total * (lv[c.id].get(to)/lv[c.id].get(from)-1)*100, 0);
+}
+function incomeMonths(lv){ // meses para comparar el ingreso, del más nuevo al más viejo
+  const latest = mnum(MONTHS[0].year, MONTHS[0].month);
+  const today = new Date(), current = mnum(today.getFullYear(), today.getMonth()+1);
+  const ok = [...lv.general.keys()].filter(k=> k<latest && Object.values(lv).every(L=>L.has(k))).sort((a,b)=>b-a);
+  const pending = [];
+  for(let k=Math.max(current,latest); k>=latest; k--) pending.push(k);
+  return {latest, ok, pending};
 }
 function inflation(basket, M, p, r){
   const total = CATS.reduce((s,c)=>s+(basket[c.id]||0),0);
@@ -488,13 +621,15 @@ function inflation(basket, M, p, r){
 
 /* ===================== estado ===================== */
 let spend = Object.fromEntries(CATS.map(c=>[c.id,0]));
-let state = {mi:0, region:0, period:"m", incNow:0, incPrev:0};
+let state = {mi:0, region:0, period:"m", incNow:0, incBase:null, incHist:{}};
 try{
   const saved = JSON.parse(localStorage.getItem("tu-inflacion") || "null");
   if(saved){ Object.assign(spend, saved.spend||{}); Object.assign(state, saved.state||{}); }
   else Object.assign(spend, PRESETS.estudiante.v);
 }catch(e){ Object.assign(spend, PRESETS.estudiante.v); }
 state.mi = 0; // siempre abrir en el mes más reciente
+state.incHist = state.incHist || {};
+delete state.incPrev; // versión anterior: el ingreso previo dependía del período de la calculadora
 function save(){ try{ localStorage.setItem("tu-inflacion", JSON.stringify({spend,state})); }catch(e){} }
 
 /* ===================== armado de controles ===================== */
@@ -505,21 +640,25 @@ const rowsEl = $("#rows");
 CATS.forEach(c=>{
   const row = document.createElement("div");
   row.className = "row";
-  row.innerHTML = `<label for="in-${c.id}" class="name">${c.name}${c.hint?`<span class="hint">${c.hint}</span>`:""}</label>
+  row.innerHTML = `${catIcon(c.id)}<label for="in-${c.id}" class="name">${c.name}${c.hint?`<span class="hint">${c.hint}</span>`:""}</label>
     <div class="money"><span>$</span><input id="in-${c.id}" inputmode="numeric" autocomplete="off" placeholder="0"></div>`;
   rowsEl.appendChild(row);
   const inp = row.querySelector("input");
   inp.addEventListener("input", ()=>{ spend[c.id]=parse(inp.value); inp.value=fmtIn(spend[c.id]); update(); });
 });
-[["#incNow","incNow"],["#incPrev","incPrev"]].forEach(([sel,key])=>{
-  const inp=$(sel);
-  inp.addEventListener("input",()=>{ state[key]=parse(inp.value); inp.value=fmtIn(state[key]); update(); });
+$("#incNow").addEventListener("input",e=>{ state.incNow=parse(e.target.value); e.target.value=fmtIn(state.incNow); update(); });
+$("#incPrev").addEventListener("input",e=>{
+  const v=parse(e.target.value); e.target.value=fmtIn(v);
+  if(v) state.incHist[state.incBase]=v; else delete state.incHist[state.incBase];
+  update();
 });
+$("#incBase").addEventListener("change",e=>{ state.incBase=+e.target.value; $("#incPrev").value=fmtIn(state.incHist[state.incBase]||0); update(); });
 function fillInputs(){
   CATS.forEach(c=> $("#in-"+c.id).value = fmtIn(spend[c.id]));
   $("#month").value=state.mi; $("#region").value=state.region; $("#period").value=state.period;
-  $("#incNow").value=fmtIn(state.incNow); $("#incPrev").value=fmtIn(state.incPrev);
+  $("#incNow").value=fmtIn(state.incNow); $("#incPrev").value=fmtIn(state.incHist[state.incBase]||0);
 }
+document.querySelectorAll("[data-preset]").forEach(b=> b.insertAdjacentHTML("afterbegin", icon(PRESETS[b.dataset.preset]?PRESETS[b.dataset.preset].icon:"trash")));
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
   const p=b.dataset.preset;
   CATS.forEach(c=> spend[c.id] = p==="vaciar" ? 0 : (PRESETS[p].v[c.id]||0));
@@ -581,7 +720,7 @@ function update(){
   $("#total").textContent = money(res?res.total:0);
   $("#periodLabel").textContent = periodText(M,p) + ", " + REG_IN[r] + ".";
   renderMain(res,off,r);
-  renderIncome(res,off,M,p);
+  renderIncome(r);
   renderMonthly(r);
   renderRank(M,p,r);
   renderProfiles(M,p,r,res);
@@ -610,36 +749,54 @@ function renderMain(res,off,r){
   $("#peekYou").textContent=pct(you);
 }
 
-function renderIncome(res,off,M,p){
-  $("#incPrevLabel").textContent = prevIncomeLabel(M,p);
-  const el=$("#incomeOut"), now=state.incNow, prev=state.incPrev;
-  const periodWord = p==="m" ? "en el último mes" : p==="a" ? `desde diciembre` : "en los últimos 12 meses";
-  if(!now){ el.innerHTML=`<h3>Tu poder de compra</h3><p class="empty">Cargá tu ingreso actual para ver cuánto de tu sueldo se llevan tus gastos. Si además cargás el ingreso anterior, calculamos si le ganaste a la inflación.</p>`; return; }
-  let html=`<h3>Tu poder de compra</h3><p class="sub">${cap(periodWord)}, ${MES[M.month-1]} de ${M.year}.</p>`;
-  if(prev && res){
+function fillIncomeBase(lv){
+  const {ok, pending} = incomeMonths(lv);
+  if(!ok.includes(state.incBase)) state.incBase = ok[0];
+  const today = new Date(), current = mnum(today.getFullYear(), today.getMonth()+1);
+  $("#incBase").innerHTML =
+    pending.map(k=>`<option value="${k}" disabled>${mnumName(k)} (${k===current?"mes actual, ":""}sin dato del INDEC todavía)</option>`).join("")
+    + ok.map(k=>`<option value="${k}">${mnumName(k)}</option>`).join("");
+  $("#incBase").value = state.incBase;
+}
+
+function renderIncome(r){
+  const lv = regionLevels(r);
+  fillIncomeBase(lv);
+  const {latest} = incomeMonths(lv);
+  const base = state.incBase, baseName = mnumName(base).toLowerCase(), latestName = mnumName(latest).toLowerCase();
+  $("#incPrevLabel").textContent = `Ingreso neto de ${baseName}`;
+  $("#incNote").textContent = `Tus precios se miden hasta ${latestName}, el último dato publicado por el INDEC. Los meses más nuevos se habilitan cuando salga el informe que falta.`;
+  const el=$("#incomeOut"), now=state.incNow, prev=state.incHist[base]||0;
+  const total = CATS.reduce((s,c)=>s+spend[c.id],0);
+  const you = inflationBetween(spend, lv, base, latest);
+  const off = (lv.general.get(latest)/lv.general.get(base)-1)*100;
+  const head = `<h3><span class="secic">${icon("wallet")}</span>Tu poder de compra</h3>`;
+  if(!now){ el.innerHTML=`${head}<p class="empty">Cargá tu ingreso actual para ver cuánto de tu sueldo se llevan tus gastos. Si además cargás tu ingreso de ${baseName}, calculamos si le ganaste a la inflación.</p>`; return; }
+  let html=`${head}<p class="sub">Entre ${baseName} y ${latestName}: tus precios subieron ${you===null?"—":pct(you)} y los del INDEC ${pct(off)}.</p>`;
+  if(prev && you!==null){
     const w=(now/prev-1)*100;
-    const realYou=((1+w/100)/(1+res.value/100)-1)*100;
+    const realYou=((1+w/100)/(1+you/100)-1)*100;
     const realOff=((1+w/100)/(1+off/100)-1)*100;
-    const need=prev*(1+res.value/100);
+    const need=prev*(1+you/100);
     html+=`<div class="kpis">
-      <div class="kpi"><div class="n">${signed(w)}</div><div class="l">Aumento de tu sueldo</div></div>
+      <div class="kpi"><div class="n">${signed(w)}</div><div class="l">Aumento de tu sueldo desde ${baseName}</div></div>
       <div class="kpi"><div class="n ${realYou>=0?"pos":"neg"}">${signed(realYou)}</div><div class="l">Tu sueldo real, con tu inflación</div></div>
       <div class="kpi"><div class="n ${realOff>=0?"pos":"neg"}">${signed(realOff)}</div><div class="l">Tu sueldo real, con la del INDEC</div></div>
     </div>
     <p class="verdict">${realYou>=0
-      ? `Tu sueldo le ganó a tus precios: hoy podés comprar ${pct(realYou)} más que antes con lo que cobrás.`
-      : `Tus precios le ganaron a tu sueldo: para comprar lo mismo que antes, hoy deberías cobrar <b>${money(need)}</b>, ${money(need-now)} más de lo que cobrás.`}
+      ? `Tu sueldo le ganó a tus precios: hoy podés comprar ${pct(realYou)} más que en ${baseName} con lo que cobrás.`
+      : `Tus precios le ganaron a tu sueldo: para comprar lo mismo que en ${baseName}, hoy deberías cobrar <b>${money(need)}</b>, ${money(need-now)} más de lo que cobrás.`}
       ${Math.sign(realYou)!==Math.sign(realOff)&&Math.abs(realYou-realOff)>0.1?` Ojo: con la inflación oficial la conclusión sería la contraria, por eso importa medir la tuya.`:""}</p>`;
-  } else if(!res){
+  } else if(you===null){
     html+=`<p class="empty">Cargá tus gastos arriba para completar el cálculo.</p>`;
   } else {
-    html+=`<p class="sub">Cargá también el ingreso anterior para saber si le ganaste a la inflación.</p>`;
+    html+=`<p class="sub">Cargá también tu ingreso de ${baseName} para saber si le ganaste a la inflación.</p>`;
   }
-  if(res){
-    const share=res.total/now*100, left=now-res.total;
+  if(total){
+    const share=total/now*100, left=now-total;
     html+=`<p style="margin:14px 0 4px;font-weight:600">Tus gastos se llevan ${pct(share)} de tu ingreso</p>
       <div class="scale" aria-hidden="true"><div style="width:${Math.min(share,100)}%${share>100?";background:var(--bad)":""}"></div></div>
-      <div class="scale-l"><span>Gastos ${money(res.total)}</span><span>${left>=0?"Te quedan":"Te faltan"} ${money(Math.abs(left))}</span></div>`;
+      <div class="scale-l"><span>Gastos ${money(total)}</span><span>${left>=0?"Te quedan":"Te faltan"} ${money(Math.abs(left))}</span></div>`;
   }
   el.innerHTML=html;
 }
@@ -659,9 +816,9 @@ function renderMonthly(r){
 
 function renderRank(M,p,r){
   $("#rankLead").textContent = `${periodText(M,p)}, ${REG_IN[r]}, según el INDEC. En negrita, los rubros en los que vos gastás.`;
-  const rows=CATS.map(c=>({name:c.name,c:c.c,v:M.data[c.id][p][r],mine:spend[c.id]>0})).sort((a,b)=>b.v-a.v);
+  const rows=CATS.map(c=>({id:c.id,name:c.name,c:c.c,v:M.data[c.id][p][r],mine:spend[c.id]>0})).sort((a,b)=>b.v-a.v);
   const max=Math.max(...rows.map(x=>Math.abs(x.v)),0.1);
-  $("#rank").innerHTML = rows.map(x=>`<div class="rk${x.mine?" mine":""}"><span class="nm" title="${x.name}">${x.name}</span>
+  $("#rank").innerHTML = rows.map(x=>`<div class="rk${x.mine?" mine":""}"><span class="nm" title="${x.name}">${catIcon(x.id,"sm")}${x.name}</span>
     <div><div class="bar" style="width:${Math.abs(x.v)/max*100}%;background:${x.v<0?"var(--good)":x.c};opacity:${x.mine?1:.45}"></div></div>
     <span class="v">${pct(x.v)}</span></div>`).join("")
     + `<div class="rk" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px"><span class="nm"><b>Nivel general</b></span><div><div class="bar" style="width:${Math.abs(M.general[p][r])/max*100}%;background:var(--indec)"></div></div><span class="v">${pct(M.general[p][r])}</span></div>`;
@@ -671,11 +828,11 @@ function renderProfiles(M,p,r,res){
   const off=M.general[p][r];
   let html=Object.values(PRESETS).map(P=>{
     const v=inflation(P.v,M,p,r).value;
-    return `<div class="panel prof"><h4>${P.label}</h4><div class="n">${pct(v)}</div>
+    return `<div class="panel prof"><h4><span class="secic">${icon(P.icon)}</span>${P.label}</h4><div class="n">${pct(v)}</div>
       <div class="who">${v>=off?`${pct(v-off).replace("%"," puntos")} por encima del INDEC`:`${pct(off-v).replace("%"," puntos")} por debajo del INDEC`}</div>
       <p>${P.desc}</p></div>`;
   }).join("");
-  if(res) html+=`<div class="panel prof you-card"><h4>Vos</h4><div class="n" style="color:var(--you-ink)">${pct(res.value)}</div>
+  if(res) html+=`<div class="panel prof you-card"><h4><span class="secic">${icon("user")}</span>Vos</h4><div class="n" style="color:var(--you-ink)">${pct(res.value)}</div>
     <div class="who">INDEC ${REG_SHORT[r]}: ${pct(off)}</div><p>Con la canasta que cargaste en la calculadora.</p></div>`;
   $("#profiles").innerHTML=html;
 }
@@ -724,7 +881,7 @@ function renderLedgerRows(){
   ledger.items.forEach(it=>{
     const row=document.createElement("div"); row.className="lrow"; row.dataset.id=it.id;
     const pv=(ledger.rec[pk]||{})[it.id]||0, cv=(ledger.rec[k]||{})[it.id]||0;
-    row.innerHTML=`<div class="lname"><input class="nm" value="${esc(it.name)}" aria-label="Nombre del concepto"><select class="cat" aria-label="Rubro">${catOptions(it.cat)}</select></div>
+    row.innerHTML=`<div class="lname"><div class="lnm-row">${catIcon(it.cat)}<input class="nm" value="${esc(it.name)}" aria-label="Nombre del concepto"></div><select class="cat" aria-label="Rubro">${catOptions(it.cat)}</select></div>
       <div class="money prev" data-label="${keyName(pk)}"><span>$</span><input inputmode="numeric" autocomplete="off" placeholder="0" value="${fmtIn(pv)}" aria-label="${esc(it.name)} en ${keyName(pk)}"></div>
       <div class="money cur" data-label="${keyName(k)}"><span>$</span><input inputmode="numeric" autocomplete="off" placeholder="0" value="${fmtIn(cv)}" aria-label="${esc(it.name)} en ${keyName(k)}"></div>
       <div class="lvar"><b></b><small></small></div>
@@ -733,7 +890,7 @@ function renderLedgerRows(){
     row.querySelector(".prev input").addEventListener("input",e=>setAmt(pk,e.target));
     row.querySelector(".cur input").addEventListener("input",e=>setAmt(k,e.target));
     row.querySelector(".nm").addEventListener("input",e=>{it.name=e.target.value;lsave();recalcLedger(false);});
-    row.querySelector(".cat").addEventListener("change",e=>{it.cat=e.target.value;recalcLedger();});
+    row.querySelector(".cat").addEventListener("change",e=>{it.cat=e.target.value;row.querySelector(".catic").outerHTML=catIcon(it.cat);recalcLedger();});
     row.querySelector(".del").addEventListener("click",()=>{
       ledger.items=ledger.items.filter(x=>x.id!==it.id);
       Object.values(ledger.rec).forEach(r=>delete r[it.id]);
