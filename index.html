@@ -141,7 +141,6 @@ h3 .secic{font-size:1.25rem;margin-right:.35em;vertical-align:-.3em;display:inli
 .catic .ic{width:58%;height:58%}
 .catic.sm{display:inline-grid;width:1.45rem;height:1.45rem;border-radius:6px;vertical-align:middle;margin-right:7px}
 .presets button .ic{display:inline-block;width:1em;height:1em;vertical-align:-.15em;margin-right:5px}
-.prof h4{display:flex;align-items:center;gap:8px}
 
 /* glosario */
 .term{
@@ -228,12 +227,6 @@ h3 .secic{font-size:1.25rem;margin-right:.35em;vertical-align:-.3em;display:inli
 .rk .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .inc-note{font-size:.82rem;color:var(--muted);margin:-6px 0 0}
 .rk .zero{position:relative}
-/* perfiles */
-.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
-.prof h4{font-size:1rem;margin:0 0 2px}
-.prof .n{font-stretch:125%;font-weight:800;font-size:2.4rem;line-height:1.05;margin:8px 0 2px}
-.prof p{font-size:.88rem;color:var(--muted);margin:6px 0 0}
-.prof.you-card{border-color:var(--you);border-width:2px}
 details{margin-top:8px;color:var(--muted);font-size:.93rem;max-width:72ch}
 summary{cursor:pointer;color:var(--ink);font-weight:600}
 details p{margin:10px 0}
@@ -293,7 +286,6 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     <a href="#sueldo">Tu sueldo</a>
     <a href="#mes-a-mes">Mes a mes</a>
     <a href="#que-subio">Qué subió</a>
-    <a href="#perfiles">Perfiles</a>
     <a href="#glosario">Glosario</a>
     <a href="#metodologia">Cómo se calcula</a>
     </div>
@@ -337,11 +329,8 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
           </label>
         </div>
         <p class="calc-help">¿Qué significa <button type="button" class="term" data-term="mensual">en el mes</button>, <button type="button" class="term" data-term="acumulada">en el año</button> o <button type="button" class="term" data-term="interanual">en 12 meses</button>?</p>
-        <div class="presets" role="group" aria-label="Cargar un ejemplo">
-          <button type="button" data-preset="estudiante">Estudiante que alquila</button>
-          <button type="button" data-preset="jubilada">Jubilada con casa propia</button>
-          <button type="button" data-preset="familia">Familia con auto</button>
-          <button type="button" data-preset="vaciar">Vaciar</button>
+        <div class="presets">
+          <button type="button" id="clearAll">Borrar todo</button>
         </div>
         <div id="rows"></div>
         <div class="total"><span>Total mensual</span><span id="total">$ 0</span></div>
@@ -412,7 +401,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
   <!-- 3. MES A MES -->
   <section class="block" id="mes-a-mes">
     <h2 class="sec"><span class="secic" data-icon="calendar"></span>Tu inflación, mes a mes</h2>
-    <p class="lead">Con tu misma canasta, así se movieron tus precios en cada informe del INDEC que tenemos cargado, al lado del índice oficial de tu <button type="button" class="term" data-term="region">región</button>.</p>
+    <p class="lead">Con tu <button type="button" class="term" data-term="canasta_fija">misma canasta</button>, así se movieron tus precios en cada informe del INDEC que tenemos cargado, al lado del índice oficial de tu <button type="button" class="term" data-term="region">región</button>. Usamos tus gastos de hoy para todos los meses, así que no hace falta cargar cada uno: cada barra muestra cuánto habría subido esa misma canasta con los precios de ese mes.</p>
     <div class="panel" id="monthly"></div>
   </section>
 
@@ -421,13 +410,6 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     <h2 class="sec"><span class="secic" data-icon="trend"></span>Qué subió más</h2>
     <p class="lead" id="rankLead"></p>
     <div class="panel"><div class="rank" id="rank"></div></div>
-  </section>
-
-  <!-- 5. PERFILES -->
-  <section class="block" id="perfiles">
-    <h2 class="sec"><span class="secic" data-icon="people"></span>Mismos precios, distintas inflaciones</h2>
-    <p class="lead">Tres hogares imaginarios en tu región, con los mismos precios pero canastas distintas. Sirve para ver por qué la inflación que siente cada uno puede ser tan diferente del número oficial.</p>
-    <div class="profiles" id="profiles"></div>
   </section>
 
   <!-- 5b. GLOSARIO -->
@@ -466,7 +448,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     </details>
     <details>
       <summary>Limitaciones</summary>
-      <p>Para el acumulado y los 12 meses usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos (<button type="button" class="term" data-term="sustitucion">efecto sustitución</button>), tu inflación real puede ser más baja. Los perfiles de ejemplo son hogares inventados con montos aproximados, no datos de encuestas.</p>
+      <p>Para el acumulado y los 12 meses usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos (<button type="button" class="term" data-term="sustitucion">efecto sustitución</button>), tu inflación real puede ser más baja.</p>
     </details>
   </section>
 </main>
@@ -892,14 +874,6 @@ const CATS = [
   {id:"cuid", name:"Cuidado personal y varios", hint:"Peluquería, higiene, otros", c:"#B08A5A"},
   {id:"alc",  name:"Alcohol y cigarrillos", hint:"", c:"#7D5A4F"}
 ];
-const PRESETS = {
-  estudiante:{icon:"edu", label:"Estudiante que alquila", desc:"Alquila un monoambiente, viaja en colectivo y come afuera seguido.",
-    v:{alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000}},
-  jubilada:{icon:"alq", label:"Jubilada con casa propia", desc:"Paga expensas pero no alquiler, gasta mucho en comida y remedios.",
-    v:{alim:380000,alq:60000,ener:70000,tpub:15000,auto:0,prep:0,rem:90000,com:25000,rest:20000,rec:20000,edu:0,ropa:30000,hogar:40000,cuid:30000,alc:10000}},
-  familia:{icon:"auto", label:"Familia con auto", desc:"Casa propia, auto, prepaga y colegio privado para los chicos.",
-    v:{alim:900000,alq:0,ener:110000,tpub:20000,auto:250000,prep:350000,rem:50000,com:60000,rest:150000,rec:120000,edu:300000,ropa:150000,hogar:90000,cuid:70000,alc:40000}}
-};
 
 /* ===================== íconos (trazos en una grilla de 24x24) ===================== */
 const ICONS = {
@@ -1051,7 +1025,7 @@ const GLOSS = {
   canasta:{t:"Canasta", g:"base",
     d:"El conjunto de bienes y servicios que se usa para medir precios, con la cantidad de cada uno: comida, alquiler, transporte, ropa, etc. La del IPC representa al hogar promedio; la tuya es la que cargás en la calculadora.",
     ex:()=>"Un estudiante que alquila y una jubilada con casa propia tienen canastas muy distintas: por eso, con los mismos precios, sienten inflaciones diferentes.",
-    rel:["ponderacion","canasta_basica","engho"]},
+    rel:["ponderacion","canasta_fija","canasta_basica"]},
   canasta_basica:{t:"Canasta básica (CBA y CBT)", g:"base",
     d:"La Canasta Básica Alimentaria (CBA) son los alimentos mínimos para cubrir las necesidades nutricionales; define la línea de indigencia. La Canasta Básica Total (CBT) suma bienes y servicios no alimentarios, como ropa, transporte y salud, y define la línea de pobreza.",
     ex:()=>"Un hogar cuyos ingresos no alcanzan para comprar la CBT se considera pobre. Si no alcanzan ni para la CBA, se considera indigente.",
@@ -1081,6 +1055,10 @@ const GLOSS = {
     d:"Cuánto cambiaron los precios respecto del mismo mes del año anterior: la inflación de los últimos 12 meses. Es la opción “En 12 meses” de la calculadora y el número que más se cita en los medios.",
     ex:()=>{const x=gd(); return `La inflación interanual de ${x.reg} en ${x.mes} fue ${pct(x.y)}: lo que hace un año costaba $ 10.000, hoy cuesta en promedio ${money(10000*(1+x.y/100))}.`;},
     rel:["mensual","acumulada"]},
+  canasta_fija:{t:"Canasta fija", g:"medir",
+    d:"Medir la inflación con las mismas cantidades de cada cosa en todos los meses, para que lo único que cambie sean los precios. Así trabaja el IPC, y así trabaja esta calculadora: tomamos tus gastos de un mes típico y vemos cuánto habrían subido con los precios de cada mes.",
+    ex:()=>"Si cargás $ 100.000 de supermercado y $ 50.000 de alquiler, la barra de marzo en \u201cMes a mes\u201d muestra cuánto más habría costado esa misma canasta con las subas de marzo, aunque en marzo hayas gastado distinto. Para medir lo que realmente pagaste cada mes, está la sección de facturas.",
+    rel:["canasta","sustitucion","ponderacion"]},
   ponderacion:{t:"Ponderación (peso)", g:"medir",
     d:"La parte de tu gasto total que se lleva cada rubro. Define cuánto te afecta que ese rubro suba: un aumento en algo en lo que gastás mucho te pega más que el mismo aumento en algo que casi no comprás.",
     ex:()=>"Si el alquiler es el 40% de tu gasto y sube 5%, te suma 2 puntos de inflación. Si la ropa es el 5% y sube 5%, te suma solo 0,25.",
@@ -1120,7 +1098,7 @@ const GLOSS = {
   sustitucion:{t:"Efecto sustitución", g:"medir",
     d:"Cuando algo sube mucho, la gente cambia a otra marca, otro producto u otro comercio. Un índice con canasta fija no lo registra, así que puede exagerar cuánto aumentó el costo de vida de quien se adapta.",
     ex:()=>"Si la carne vacuna sube y pasás a comprar más pollo, tu gasto sube menos que el precio de la carne.",
-    rel:["canasta","ponderacion"]},
+    rel:["canasta_fija","ponderacion"]},
 
   salario_real:{t:"Salario real (poder de compra)", g:"bolsillo",
     d:"Cuánto podés comprar con tu sueldo, una vez descontada la inflación. Se calcula como (1 + suba del sueldo) ÷ (1 + inflación) − 1. Si da positivo, tu sueldo le ganó a los precios.",
@@ -1254,8 +1232,10 @@ let state = {mi:0, region:0, period:"m", incNow:0, incBase:null, incHist:{}};
 try{
   const saved = JSON.parse(localStorage.getItem("tu-inflacion") || "null");
   if(saved){ Object.assign(spend, saved.spend||{}); Object.assign(state, saved.state||{}); }
-  else Object.assign(spend, PRESETS.estudiante.v);
-}catch(e){ Object.assign(spend, PRESETS.estudiante.v); }
+}catch(e){}
+// Versiones anteriores arrancaban con un ejemplo cargado: si sigue intacto, lo vaciamos
+const OLD_EXAMPLE={alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000};
+if(CATS.every(c=>(spend[c.id]||0)===OLD_EXAMPLE[c.id])) CATS.forEach(c=>spend[c.id]=0);
 state.mi = 0; // siempre abrir en el mes más reciente
 state.incHist = state.incHist || {};
 delete state.incPrev; // versión anterior: el ingreso previo dependía del período de la calculadora
@@ -1288,12 +1268,8 @@ function fillInputs(){
   $("#month").value=state.mi; $("#region").value=state.region; $("#period").value=state.period;
   $("#incNow").value=fmtIn(state.incNow); $("#incPrev").value=fmtIn(state.incHist[state.incBase]||0);
 }
-document.querySelectorAll("[data-preset]").forEach(b=> b.insertAdjacentHTML("afterbegin", icon(PRESETS[b.dataset.preset]?PRESETS[b.dataset.preset].icon:"trash")));
-document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
-  const p=b.dataset.preset;
-  CATS.forEach(c=> spend[c.id] = p==="vaciar" ? 0 : (PRESETS[p].v[c.id]||0));
-  fillInputs(); update();
-}));
+$("#clearAll").insertAdjacentHTML("afterbegin", icon("trash"));
+$("#clearAll").addEventListener("click",()=>{ CATS.forEach(c=> spend[c.id]=0); fillInputs(); update(); $("#in-"+CATS[0].id).focus(); });
 $("#month").addEventListener("change",e=>{state.mi=+e.target.value;update();});
 $("#region").addEventListener("change",e=>{state.region=+e.target.value;update();});
 $("#period").addEventListener("change",e=>{state.period=e.target.value;update();});
@@ -1357,7 +1333,6 @@ function update(){
   renderIncome(r);
   renderMonthly(r);
   renderRank(M,p,r);
-  renderProfiles(M,p,r,res);
   renderGlossary();
   placeTerm();
 }
@@ -1365,7 +1340,7 @@ function update(){
 function renderMain(res,off,r){
   const out=$("#out");
   $("#peekIndec").textContent=pct(off);
-  if(!res){ out.innerHTML=`<p class="empty">Cargá al menos un gasto, o elegí uno de los ejemplos, para ver tu inflación.</p>`; $("#peekYou").textContent="—"; return; }
+  if(!res){ out.innerHTML=`<p class="empty">Cargá cuánto gastás por mes en cada rubro para ver tu inflación. Con montos aproximados alcanza.</p>`; $("#peekYou").textContent="—"; return; }
   const you=res.value, diff=you-off;
   const top=[...res.rows].sort((a,b)=>b.aporte-a.aporte).slice(0,2);
   let verdict;
@@ -1476,19 +1451,6 @@ function renderRank(M,p,r){
     <div><div class="bar" style="width:${Math.abs(x.v)/max*100}%;background:${x.v<0?"var(--good)":x.c};opacity:${x.mine?1:.45}"></div></div>
     <span class="v">${pct(x.v)}</span></div>`).join("")
     + `<div class="rk" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px"><span class="nm"><b>Nivel general</b></span><div><div class="bar" style="width:${Math.abs(M.general[p][r])/max*100}%;background:var(--indec)"></div></div><span class="v">${pct(M.general[p][r])}</span></div>`;
-}
-
-function renderProfiles(M,p,r,res){
-  const off=M.general[p][r];
-  let html=Object.values(PRESETS).map(P=>{
-    const v=inflation(P.v,M,p,r).value;
-    return `<div class="panel prof"><h4><span class="secic">${icon(P.icon)}</span>${P.label}</h4><div class="n">${pct(v)}</div>
-      <div class="who">${v>=off?`${pct(v-off).replace("%"," puntos")} por encima del INDEC`:`${pct(off-v).replace("%"," puntos")} por debajo del INDEC`}</div>
-      <p>${P.desc}</p></div>`;
-  }).join("");
-  if(res) html+=`<div class="panel prof you-card"><h4><span class="secic">${icon("user")}</span>Vos</h4><div class="n" style="color:var(--you-ink)">${pct(res.value)}</div>
-    <div class="who">INDEC ${REG_SHORT[r]}: ${pct(off)}</div><p>Con la canasta que cargaste en la calculadora.</p></div>`;
-  $("#profiles").innerHTML=html;
 }
 
 fillInputs(); update();
