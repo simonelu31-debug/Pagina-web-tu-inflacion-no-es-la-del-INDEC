@@ -7,6 +7,12 @@ interanual (y) del nivel general y de los 15 rubros de la calculadora, en las
 6 regiones, y reemplaza el bloque de datos de index.html que está entre
 /* <datos-indec> */ y /* </datos-indec> */.
 
+También calcula las ponderaciones efectivas de cada rubro en el IPC (w): el
+peso de la encuesta de gastos multiplicado por cuánto subió ese rubro respecto
+del nivel general desde la base (diciembre 2016). Con ellas, la inflación
+oficial es exactamente la suma de peso efectivo por suba de cada rubro, y la
+página puede explicar por qué la inflación de cada uno difiere de la oficial.
+
 Antes de escribir verifica que no falte ninguna serie y que los meses que ya
 estaban en la página no cambien (salvo diferencias mínimas de redondeo). Si algo
 no cierra, termina con error y no toca nada.
@@ -106,19 +112,41 @@ def leer_hoja(libro, nombre):
     return datos
 
 
-def red(x):
-    return float(Decimal(repr(x)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
+def red(x, q="0.1"):
+    return float(Decimal(repr(x)).quantize(Decimal(q), rounding=ROUND_HALF_UP))
+
+
+def leer_ponderaciones(libro):
+    """Pesos de la canasta del IPC por apertura (tabla 'Descripcion' de la hoja Ponderaciones)."""
+    hoja = libro.sheet_by_name("Ponderaciones")
+    pesos, dentro = {}, False
+    for r in range(hoja.nrows):
+        fila = hoja.row_values(r)
+        rotulo = str(fila[0]).strip()
+        if rotulo == "Descripcion":  # encabezado: GBA, Pampeana, Noreste, Noroeste, Cuyo, Patagonia
+            dentro = True
+            continue
+        if dentro:
+            if rotulo.startswith("Fuente") or not rotulo:
+                break
+            pesos[rotulo] = [float(x) for x in fila[1:7]]
+    faltan = [k for k, texto in SERIES.items() if k != "general" and texto not in pesos]
+    if faltan:
+        sys.exit(f"En la hoja Ponderaciones faltan: {faltan}")
+    return pesos
 
 
 def armar_meses(libro):
     M, Y, I = (leer_hoja(libro, HOJAS[k]) for k in ("m", "y", "i"))
+    W = leer_ponderaciones(libro)
     disponibles = set.intersection(*(set(s) for h in (M, Y, I) for s in h.values()))
     ultimo = max(disponibles)
     meses = []
     y, m = ultimo
     while (y, m) >= DESDE:
         dic = (y - 1, 12)
-        mes = {"year": y, "month": m, "general": None, "data": {}}
+        mes = {"year": y, "month": m, "general": None, "data": {}, "w": {"m": {}, "a": {}, "y": {}}}
+        bases = {"m": (y - 1, 12) if m == 1 else (y, m - 1), "a": dic, "y": (y - 1, m)}
         for clave in SERIES:
             fila = {"m": [], "a": [], "y": []}
             for r in range(6):
@@ -131,6 +159,10 @@ def armar_meses(libro):
                 mes["general"] = fila
             else:
                 mes["data"][clave] = fila
+                # peso efectivo en el IPC al inicio de cada período
+                for p, base in bases.items():
+                    mes["w"][p][clave] = [red(W[SERIES[clave]][r] * I[(clave, r)][base] / I[("general", r)][base], "0.0001")
+                                          for r in range(6)]
         meses.append(mes)
         y, m = (y - 1, 12) if m == 1 else (y, m - 1)
     return meses
@@ -143,7 +175,8 @@ def bloque_js(meses):
                  f'   "general":{json.dumps(M["general"], separators=(",", ":"))},',
                  '   "data":{']
         filas.append(",\n".join(f'    "{k}":{json.dumps(v, separators=(",", ":"))}' for k, v in M["data"].items()))
-        filas.append("  }}")
+        filas.append("   },")
+        filas.append(f'   "w":{json.dumps(M["w"], separators=(",", ":"))}}}')
         lineas.append("\n".join(filas))
     return (f"{INICIO}\n// Generado por scripts/actualizar_ipc.py a partir del Excel de aperturas del INDEC. No editar a mano.\n"
             "const MONTHS = [\n" + ",\n".join(lineas) + "\n];\n" + FIN)
