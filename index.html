@@ -143,6 +143,40 @@ h3 .secic{font-size:1.25rem;margin-right:.35em;vertical-align:-.3em;display:inli
 .presets button .ic{display:inline-block;width:1em;height:1em;vertical-align:-.15em;margin-right:5px}
 .prof h4{display:flex;align-items:center;gap:8px}
 
+/* glosario */
+.term{
+  font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:help;
+  text-decoration:underline dotted;text-decoration-color:var(--indec);text-decoration-thickness:2px;text-underline-offset:3px;
+  border-radius:3px;text-align:inherit;letter-spacing:inherit;
+}
+.term:hover,.term[aria-expanded="true"]{background:color-mix(in srgb,var(--indec) 14%,transparent)}
+.gpop{
+  position:absolute;z-index:30;width:min(360px,calc(100vw - 32px));
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;
+  padding:16px 18px 14px;box-shadow:0 12px 32px rgba(0,0,0,.18);font-size:.92rem;line-height:1.45;
+}
+.gpop h4{margin:0 28px 6px 0;font-size:1.02rem;font-stretch:110%}
+.gpop p{margin:0 0 8px}
+.gclose{position:absolute;top:8px;right:8px;font:inherit;font-size:1.3rem;line-height:1;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px}
+.gclose:hover{color:var(--ink)}
+.gmore{font-size:.85rem;font-weight:600}
+.gex{background:var(--field);border-left:3px solid var(--you);padding:8px 10px;border-radius:0 8px 8px 0;font-size:.88rem}
+.grel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:.82rem;color:var(--muted)}
+.grel .term{font-size:.8rem;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--ink);cursor:pointer}
+.gtools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.gtools input{max-width:360px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:.85rem;cursor:pointer;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;align-items:start}
+.gcard{font-size:.92rem;scroll-margin-top:90px}
+.gcard h3{font-size:1.08rem;margin:2px 0 8px}
+.gcard p{margin:0 0 10px}
+.gcat{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.gcard:target,.gcard.flash{animation:flash 1.6s ease}
+@keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--you)}100%{box-shadow:0 0 0 0 transparent}}
+.calc-help{font-size:.82rem;color:var(--muted);margin:-8px 0 16px}
+
 /* sueldo */
 .income-in{display:grid;gap:14px}
 .income-in .money input{text-align:right}
@@ -231,6 +265,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     <a href="#mes-a-mes">Mes a mes</a>
     <a href="#que-subio">Qué subió</a>
     <a href="#perfiles">Perfiles</a>
+    <a href="#glosario">Glosario</a>
     <a href="#metodologia">Cómo se calcula</a>
     </div>
     <button type="button" class="theme" id="themeBtn"></button>
@@ -240,7 +275,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
 <main class="wrap">
   <header class="hero">
     <h1>Tu inflación no es la del INDEC</h1>
-    <p>El IPC mide cuánto suben los precios de una canasta promedio. Pero nadie gasta como el promedio. Podés medir tu propia inflación de dos formas: rápido, cargando cuánto gastás en cada rubro, o exacto, anotando tus facturas de cada mes. Y de paso, ver si tu sueldo le ganó.</p>
+    <p>El <button type="button" class="term" data-term="ipc">IPC</button> mide cuánto suben los precios de una <button type="button" class="term" data-term="canasta">canasta</button> promedio. Pero nadie gasta como el promedio. Podés medir tu propia inflación de dos formas: rápido, cargando cuánto gastás en cada rubro, o exacto, anotando tus facturas de cada mes. Y de paso, ver si tu sueldo le ganó.</p>
     <p class="stamp">Último dato cargado: <b id="lastMonth"></b>, publicado por el INDEC.</p>
   </header>
 
@@ -272,6 +307,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
             </select>
           </label>
         </div>
+        <p class="calc-help">¿Qué significa <button type="button" class="term" data-term="mensual">en el mes</button>, <button type="button" class="term" data-term="acumulada">en el año</button> o <button type="button" class="term" data-term="interanual">en 12 meses</button>?</p>
         <div class="presets" role="group" aria-label="Cargar un ejemplo">
           <button type="button" data-preset="estudiante">Estudiante que alquila</button>
           <button type="button" data-preset="jubilada">Jubilada con casa propia</button>
@@ -325,7 +361,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
   <!-- 2. SUELDO -->
   <section class="block" id="sueldo">
     <h2 class="sec"><span class="secic" data-icon="wallet"></span>¿Tu sueldo le ganó a tus precios?</h2>
-    <p class="lead">Cargá cuánto cobrás ahora, elegí con qué mes querés comparar y cuánto cobrabas en ese momento. Lo comparamos contra tu inflación y contra la oficial. Estos datos quedan solo en tu navegador.</p>
+    <p class="lead">Cargá cuánto cobrás ahora, elegí con qué mes querés comparar y cuánto cobrabas en ese momento. Lo comparamos contra tu inflación y contra la oficial para calcular tu <button type="button" class="term" data-term="salario_real">salario real</button>. Estos datos quedan solo en tu navegador.</p>
     <div class="grid two">
       <div class="panel income-in">
         <label class="ctl">Ingreso mensual neto actual
@@ -347,7 +383,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
   <!-- 3. MES A MES -->
   <section class="block" id="mes-a-mes">
     <h2 class="sec"><span class="secic" data-icon="calendar"></span>Tu inflación, mes a mes</h2>
-    <p class="lead">Con tu misma canasta, así se movieron tus precios en cada informe del INDEC que tenemos cargado, al lado del índice oficial de tu región.</p>
+    <p class="lead">Con tu misma canasta, así se movieron tus precios en cada informe del INDEC que tenemos cargado, al lado del índice oficial de tu <button type="button" class="term" data-term="region">región</button>.</p>
     <div class="panel" id="monthly"></div>
   </section>
 
@@ -365,12 +401,23 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     <div class="profiles" id="profiles"></div>
   </section>
 
+  <!-- 5b. GLOSARIO -->
+  <section class="block" id="glosario">
+    <h2 class="sec"><span class="secic" data-icon="book"></span>Glosario</h2>
+    <p class="lead">Las palabras que usan los economistas y los noticieros, explicadas con ejemplos. En toda la página, los términos subrayados con puntitos se pueden tocar para ver qué significan.</p>
+    <div class="gtools">
+      <input type="search" id="gSearch" placeholder="Buscar, por ejemplo: interanual" aria-label="Buscar en el glosario" autocomplete="off">
+      <div class="chips" id="gChips" role="group" aria-label="Filtrar por tema"></div>
+    </div>
+    <div class="glist" id="glist"></div>
+  </section>
+
   <!-- 6. METODOLOGÍA -->
   <section class="block" id="metodologia">
     <h2 class="sec"><span class="secic" data-icon="info"></span>Cómo se calcula</h2>
     <details open>
       <summary>La fórmula</summary>
-      <p>Tu inflación es un promedio ponderado: cada rubro pesa según la parte de tu gasto que se lleva, y se multiplica por cuánto subieron los precios de ese rubro en tu región según el INDEC. Es la misma lógica del IPC, pero con tus ponderaciones en lugar de las de la canasta oficial.</p>
+      <p>Tu inflación es un <button type="button" class="term" data-term="promedio_ponderado">promedio ponderado</button>: cada rubro pesa según la parte de tu gasto que se lleva, y se multiplica por cuánto subieron los precios de ese rubro en tu región según el INDEC. Es la misma lógica del IPC, pero con tus <button type="button" class="term" data-term="ponderacion">ponderaciones</button> en lugar de las de la canasta oficial.</p>
       <p>En el gráfico de la calculadora, el ancho de cada barra es cuánto pesa ese rubro en tu gasto y la altura es cuánto subió. El área de cada barra es lo que aporta a tu inflación, y la línea amarilla es el promedio de todas: tu número.</p>
     </details>
     <details>
@@ -380,16 +427,16 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     </details>
     <details>
       <summary>Tu sueldo en términos reales</summary>
-      <p>Para comparar contra el mes que elijas, encadenamos los datos del INDEC: la variación mensual, la acumulada en el año y la interanual permiten armar un índice de precios para cada rubro y ver cuánto subió entre ese mes y el último dato publicado. Por eso solo aparecen los meses que esos informes permiten calcular; los más recientes se habilitan cuando el INDEC publica la inflación que falta.</p>
+      <p>Para comparar contra el mes que elijas, encadenamos los datos del INDEC en un <button type="button" class="term" data-term="indice_encadenado">índice de precios</button>: la variación mensual, la acumulada en el año y la interanual permiten armar un índice de precios para cada rubro y ver cuánto subió entre ese mes y el último dato publicado. Por eso solo aparecen los meses que esos informes permiten calcular; los más recientes se habilitan cuando el INDEC publica la inflación que falta.</p>
       <p>La variación real se calcula como (1 + suba de tu sueldo) / (1 + inflación) − 1. Por ejemplo, si tu sueldo subió 30% y tu inflación fue 35%, tu poder de compra cayó cerca de 3,7%, no 5%. El "sueldo que necesitarías" es tu ingreso anterior ajustado por tu inflación.</p>
     </details>
     <details>
       <summary>Fuentes</summary>
-      <p>INDEC, Índice de precios al consumidor, informes de junio, julio y agosto de 2026 (cuadros 1 a 3 y 21 a 23). Alquiler y expensas, luz y gas, prepaga, remedios, transporte público y auto usan las aperturas regionales; el resto usa las divisiones. El IPC oficial todavía pondera con la encuesta de gastos 2004/05, así que la canasta "promedio" es la de hace veinte años.</p>
+      <p>INDEC, Índice de precios al consumidor, informes de junio, julio y agosto de 2026 (cuadros 1 a 3 y 21 a 23). Alquiler y expensas, luz y gas, prepaga, remedios, transporte público y auto usan las <button type="button" class="term" data-term="apertura">aperturas</button> regionales; el resto usa las <button type="button" class="term" data-term="division">divisiones</button>. El IPC oficial todavía pondera con la <button type="button" class="term" data-term="engho">encuesta de gastos</button> 2004/05, así que la canasta "promedio" es la de hace veinte años.</p>
     </details>
     <details>
       <summary>Limitaciones</summary>
-      <p>Para el acumulado y los 12 meses usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos, tu inflación real puede ser más baja. Los perfiles de ejemplo son hogares inventados con montos aproximados, no datos de encuestas.</p>
+      <p>Para el acumulado y los 12 meses usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos (<button type="button" class="term" data-term="sustitucion">efecto sustitución</button>), tu inflación real puede ser más baja. Los perfiles de ejemplo son hogares inventados con montos aproximados, no datos de encuestas.</p>
     </details>
   </section>
 </main>
@@ -531,6 +578,7 @@ const ICONS = {
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
   share:'<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/>',
+  book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/><path d="M8 7h8M8 10.5h6"/>',
   moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'
 };
 const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]||""}</svg>`;
@@ -622,6 +670,188 @@ function inflation(basket, M, p, r){
   });
   return {total, rows, value: rows.reduce((s,x)=>s+x.aporte,0)};
 }
+
+/* ===================== GLOSARIO =====================
+   Cada término: t = título, g = grupo, d = definición, ex = ejemplo (función, para
+   poder usar los datos cargados), rel = términos relacionados.
+   Para marcar una palabra en la página: T("clave","texto") o, en el HTML,
+   <button type="button" class="term" data-term="clave">texto</button> */
+function T(k,txt){ return `<button type="button" class="term" data-term="${k}">${txt}</button>`; }
+const G_GROUPS = {base:"Conceptos básicos", medir:"Cómo se mide", bolsillo:"Tu bolsillo"};
+function gd(){ const M=MONTHS[0], r=state.region; return {M, reg:REG_SHORT[r], mes:`${MES[M.month-1]} ${M.year}`, m:M.general.m[r], a:M.general.a[r], y:M.general.y[r]}; }
+const GLOSS = {
+  inflacion:{t:"Inflación", g:"base",
+    d:"Aumento generalizado y sostenido de los precios. No alcanza con que suba una cosa: es inflación cuando suben la mayoría de los precios, mes tras mes. Visto al revés, es la pérdida de valor de la moneda.",
+    ex:()=>{const x=gd(); return `En ${x.mes} la inflación de ${x.reg} fue ${pct(x.m)}: lo que costaba $ 10.000 el mes anterior pasó a costar, en promedio, ${money(10000*(1+x.m/100))}.`;},
+    rel:["ipc","mensual","nucleo"]},
+  ipc:{t:"IPC (Índice de Precios al Consumidor)", g:"base",
+    d:"El índice con el que el INDEC mide la inflación oficial. Sigue todos los meses los precios de una canasta fija de bienes y servicios que consumen los hogares, y resume en un solo número cuánto cambió su costo.",
+    ex:()=>{const x=gd(); return `Que el IPC de ${x.reg} haya subido ${pct(x.m)} en ${x.mes} quiere decir que esa canasta costó ${pct(x.m)} más que el mes anterior. Tu gasto puede haber subido más o menos: para eso está la calculadora.`;},
+    rel:["canasta","engho","indec"]},
+  indec:{t:"INDEC", g:"base",
+    d:"Instituto Nacional de Estadística y Censos. Es el organismo público que produce las estadísticas oficiales del país: inflación, pobreza, desempleo, PBI y el censo, entre otras.",
+    ex:()=>"El IPC de un mes se publica a mediados del mes siguiente. Por eso, mientras transcurre un mes, todavía no hay dato oficial de su inflación.",
+    rel:["ipc","region"]},
+  canasta:{t:"Canasta", g:"base",
+    d:"El conjunto de bienes y servicios que se usa para medir precios, con la cantidad de cada uno: comida, alquiler, transporte, ropa, etc. La del IPC representa al hogar promedio; la tuya es la que cargás en la calculadora.",
+    ex:()=>"Un estudiante que alquila y una jubilada con casa propia tienen canastas muy distintas: por eso, con los mismos precios, sienten inflaciones diferentes.",
+    rel:["ponderacion","canasta_basica","engho"]},
+  canasta_basica:{t:"Canasta básica (CBA y CBT)", g:"base",
+    d:"La Canasta Básica Alimentaria (CBA) son los alimentos mínimos para cubrir las necesidades nutricionales; define la línea de indigencia. La Canasta Básica Total (CBT) suma bienes y servicios no alimentarios, como ropa, transporte y salud, y define la línea de pobreza.",
+    ex:()=>"Un hogar cuyos ingresos no alcanzan para comprar la CBT se considera pobre. Si no alcanzan ni para la CBA, se considera indigente.",
+    rel:["canasta","ingreso_neto"]},
+  nucleo:{t:"Inflación núcleo", g:"base",
+    d:"La inflación sin contar los precios regulados ni los estacionales. Sirve para ver la tendencia de fondo, sacando los saltos por tarifazos o por la temporada.",
+    ex:()=>"Si en un mes aumentan fuerte la luz y el gas, la inflación general sube, pero la núcleo puede quedarse quieta: la suba vino de una decisión de tarifas, no de todos los precios.",
+    rel:["regulados","estacionales","inflacion"]},
+  regulados:{t:"Precios regulados", g:"base",
+    d:"Precios que fija o controla el Estado, o que tienen un fuerte componente impositivo: por ejemplo, tarifas de luz, gas y agua, transporte público, combustibles, telefonía, prepagas, educación formal y cigarrillos.",
+    ex:()=>"Un aumento del boleto de colectivo es un cambio de precio regulado: se anuncia antes y ocurre de una sola vez.",
+    rel:["nucleo","estacionales"]},
+  estacionales:{t:"Precios estacionales", g:"base",
+    d:"Precios que cambian con las estaciones del año: frutas y verduras, ropa de temporada, turismo y alojamiento.",
+    ex:()=>"El tomate suele encarecerse en invierno, y los pasajes y hoteles en vacaciones, aunque el resto de la economía no cambie.",
+    rel:["nucleo","regulados"]},
+
+  mensual:{t:"Variación mensual", g:"medir",
+    d:"Cuánto cambió un precio o un índice respecto del mes anterior. Es la opción “En el mes” de la calculadora.",
+    ex:()=>{const x=gd(); return `En ${x.reg}, la variación mensual de ${x.mes} fue ${pct(x.m)}.`;},
+    rel:["acumulada","interanual"]},
+  acumulada:{t:"Variación acumulada", g:"medir",
+    d:"Cuánto subieron los precios desde diciembre del año anterior hasta el mes elegido. Es la opción “En el año” de la calculadora. Ojo: no es la suma de las mensuales, porque cada suba se aplica sobre precios que ya habían subido.",
+    ex:()=>{const x=gd(); return `Un mes de 2% y otro de 3% no dan 5% acumulado, sino (1,02 × 1,03) − 1 = 5,06%. En ${x.reg}, lo acumulado hasta ${x.mes} es ${pct(x.a)}.`;},
+    rel:["mensual","interanual","indice_encadenado"]},
+  interanual:{t:"Variación interanual", g:"medir",
+    d:"Cuánto cambiaron los precios respecto del mismo mes del año anterior: la inflación de los últimos 12 meses. Es la opción “En 12 meses” de la calculadora y el número que más se cita en los medios.",
+    ex:()=>{const x=gd(); return `La inflación interanual de ${x.reg} en ${x.mes} fue ${pct(x.y)}: lo que hace un año costaba $ 10.000, hoy cuesta en promedio ${money(10000*(1+x.y/100))}.`;},
+    rel:["mensual","acumulada"]},
+  ponderacion:{t:"Ponderación (peso)", g:"medir",
+    d:"La parte de tu gasto total que se lleva cada rubro. Define cuánto te afecta que ese rubro suba: un aumento en algo en lo que gastás mucho te pega más que el mismo aumento en algo que casi no comprás.",
+    ex:()=>"Si el alquiler es el 40% de tu gasto y sube 5%, te suma 2 puntos de inflación. Si la ropa es el 5% y sube 5%, te suma solo 0,25.",
+    rel:["promedio_ponderado","aporte","canasta"]},
+  promedio_ponderado:{t:"Promedio ponderado", g:"medir",
+    d:"Un promedio donde cada valor cuenta según su peso. Así se calcula el IPC y así se calcula tu inflación en esta página.",
+    ex:()=>"Si el 60% de tu gasto es comida y subió 2%, y el 40% es alquiler y subió 5%, tu inflación es 0,6 × 2% + 0,4 × 5% = 3,2%. El promedio simple daría 3,5%.",
+    rel:["ponderacion","aporte"]},
+  aporte:{t:"Aporte (incidencia)", g:"medir",
+    d:"Cuántos puntos de tu inflación explica cada rubro: su peso en tu gasto multiplicado por cuánto subió. La suma de todos los aportes da tu inflación.",
+    ex:()=>"Con el alquiler pesando 40% y subiendo 5%, su aporte es 0,4 × 5 = 2 puntos porcentuales.",
+    rel:["ponderacion","pp"]},
+  pp:{t:"Puntos porcentuales", g:"medir",
+    d:"La diferencia entre dos porcentajes. No es lo mismo que una variación en %: “1 punto más” y “1% más” son cosas distintas.",
+    ex:()=>"Si tu inflación fue 3% y la oficial 2%, tuviste 1 punto porcentual más. En términos relativos, tu inflación fue 50% mayor.",
+    rel:["aporte","mensual"]},
+  region:{t:"Regiones del IPC", g:"medir",
+    d:"El INDEC mide la inflación por separado en seis regiones: GBA (Ciudad de Buenos Aires y conurbano), Pampeana, Noreste, Noroeste, Cuyo y Patagonia. Cada una tiene sus propios precios y su propia canasta.",
+    ex:()=>"Una suba de tarifas de gas puede pesar mucho más en la Patagonia, donde la calefacción se usa más meses del año.",
+    rel:["ipc","division"]},
+  division:{t:"Divisiones (rubros)", g:"medir",
+    d:"Los grandes grupos en que el INDEC ordena la canasta del IPC: alimentos y bebidas, prendas de vestir, vivienda y servicios, salud, transporte, comunicación, recreación, educación, restaurantes, entre otros.",
+    ex:()=>"“Supermercado y almacén” de la calculadora usa la división Alimentos y bebidas no alcohólicas.",
+    rel:["apertura","canasta"]},
+  apertura:{t:"Aperturas", g:"medir",
+    d:"Subgrupos más finos que el INDEC publica dentro de cada división, como “Alquiler de la vivienda” o “Electricidad, gas y otros combustibles”. Permiten separar cosas que dentro de una división se mueven muy distinto.",
+    ex:()=>"Alquiler, luz y gas, prepaga, remedios, transporte público y auto usan aperturas en la calculadora, en lugar de la división completa.",
+    rel:["division"]},
+  engho:{t:"ENGHo", g:"medir",
+    d:"La Encuesta Nacional de Gastos de los Hogares. Releva en qué gastan los hogares y de ahí salen los pesos de cada rubro en el IPC. Por eso la canasta “promedio” refleja los hábitos del año en que se hizo la encuesta.",
+    ex:()=>"Si la encuesta es de hace muchos años, pueden pesar poco gastos que hoy son centrales, como internet o las plataformas de streaming.",
+    rel:["ipc","ponderacion","canasta"]},
+  indice_encadenado:{t:"Índice de precios (nivel)", g:"medir",
+    d:"Un número que sigue el nivel de precios a lo largo del tiempo, arrancando de una base (por ejemplo, 100). Con él se puede comparar cualquier par de meses dividiendo sus valores. Así comparamos tu sueldo contra el mes que elijas.",
+    ex:()=>"Diciembre = 100. Si en enero los precios suben 2%, enero = 102; si en febrero suben 3%, febrero = 105,06. Entre diciembre y febrero subieron 5,06%.",
+    rel:["acumulada","deflactar"]},
+  sustitucion:{t:"Efecto sustitución", g:"medir",
+    d:"Cuando algo sube mucho, la gente cambia a otra marca, otro producto u otro comercio. Un índice con canasta fija no lo registra, así que puede exagerar cuánto aumentó el costo de vida de quien se adapta.",
+    ex:()=>"Si la carne vacuna sube y pasás a comprar más pollo, tu gasto sube menos que el precio de la carne.",
+    rel:["canasta","ponderacion"]},
+
+  salario_real:{t:"Salario real (poder de compra)", g:"bolsillo",
+    d:"Cuánto podés comprar con tu sueldo, una vez descontada la inflación. Se calcula como (1 + suba del sueldo) ÷ (1 + inflación) − 1. Si da positivo, tu sueldo le ganó a los precios.",
+    ex:()=>"Si tu sueldo subió 30% y tu inflación fue 35%, tu salario real cayó: 1,30 ÷ 1,35 − 1 = −3,7%. No es −5%, como daría la resta.",
+    rel:["nominal","deflactar","ingreso_neto"]},
+  nominal:{t:"Nominal y real", g:"bolsillo",
+    d:"Un valor nominal está en pesos de cada momento, tal como figura en el recibo o el ticket. Un valor real está ajustado por inflación, para comparar poder de compra entre fechas.",
+    ex:()=>"Pasar de cobrar $ 1.000.000 a $ 1.200.000 es una suba nominal de 20%. Si los precios subieron 25%, en términos reales cobrás menos.",
+    rel:["salario_real","deflactar"]},
+  deflactar:{t:"Deflactar (actualizar por inflación)", g:"bolsillo",
+    d:"Llevar un monto de pesos de un momento a pesos de otro momento usando un índice de precios. Sirve para comparar sueldos, alquileres o ahorros de fechas distintas.",
+    ex:()=>{const x=gd(); return `Con la inflación acumulada de ${x.reg} (${pct(x.a)}), $ 100.000 de diciembre de ${x.M.year-1} equivalen a ${money(100000*(1+x.a/100))} de ${x.mes}.`;},
+    rel:["indice_encadenado","nominal"]},
+  ingreso_neto:{t:"Ingreso neto", g:"bolsillo",
+    d:"Lo que efectivamente cobrás, después de los descuentos: aportes jubilatorios, obra social y, si corresponde, impuesto a las ganancias. El bruto es el monto antes de esos descuentos.",
+    ex:()=>"En un recibo de sueldo en relación de dependencia, los descuentos de ley suelen rondar el 17% del bruto, así que un bruto de $ 1.000.000 da un neto cercano a $ 830.000.",
+    rel:["salario_real"]}
+};
+
+const normTxt = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const gEntry = k => { const e=GLOSS[k]; return `<p>${e.d}</p>${e.ex?`<p class="gex"><b>Ejemplo.</b> ${e.ex()}</p>`:""}${e.rel&&e.rel.length?`<div class="grel"><span>Relacionados:</span>${e.rel.map(x=>T(x,GLOSS[x].t)).join("")}</div>`:""}`; };
+
+let gFilter = "todos";
+function renderGlossary(){
+  const box=$("#glist"); if(!box) return;
+  const q=normTxt($("#gSearch").value.trim());
+  const keys=Object.keys(GLOSS).filter(k=>{
+    const e=GLOSS[k];
+    return (gFilter==="todos"||e.g===gFilter) && (!q || normTxt(e.t+" "+e.d).includes(q));
+  }).sort((a,b)=>GLOSS[a].t.localeCompare(GLOSS[b].t,"es"));
+  box.innerHTML = keys.length ? keys.map(k=>`<article class="panel gcard" id="g-${k}"><div class="gcat">${G_GROUPS[GLOSS[k].g]}</div><h3>${GLOSS[k].t}</h3>${gEntry(k)}</article>`).join("")
+    : `<p class="empty">No encontramos ese término. Probá con otra palabra, como “sueldo” o “mensual”.</p>`;
+}
+
+/* ventanita que se abre al tocar un término subrayado */
+const gpop=document.createElement("div");
+gpop.className="gpop"; gpop.hidden=true; gpop.setAttribute("role","dialog");
+document.body.appendChild(gpop);
+let gAnchor=null;
+function showTerm(k){
+  gpop.innerHTML=`<button type="button" class="gclose" aria-label="Cerrar">×</button><h4>${GLOSS[k].t}</h4>${gEntry(k)}<a class="gmore" href="#g-${k}">Ver en el glosario</a>`;
+  gpop.setAttribute("aria-label",GLOSS[k].t);
+  gpop.hidden=false; placeTerm();
+}
+function placeTerm(){
+  if(gpop.hidden||!gAnchor) return;
+  if(!gAnchor.isConnected){ closeTerm(false); return; }
+  const r=gAnchor.getBoundingClientRect(), w=gpop.offsetWidth, h=gpop.offsetHeight;
+  let left=Math.min(Math.max(r.left,16), innerWidth-16-w);
+  let top=r.bottom+8;
+  if(top+h>innerHeight-12 && r.top-h-8>12) top=r.top-h-8;
+  gpop.style.left=(left+scrollX)+"px"; gpop.style.top=(top+scrollY)+"px";
+}
+function openTerm(btn){
+  const k=btn.dataset.term; if(!GLOSS[k]) return;
+  if(gAnchor===btn && !gpop.hidden){ closeTerm(); return; }
+  closeTerm(false);
+  gAnchor=btn; btn.setAttribute("aria-expanded","true");
+  showTerm(k);
+}
+function closeTerm(refocus=true){
+  if(gAnchor){ gAnchor.setAttribute("aria-expanded","false"); if(refocus&&gAnchor.isConnected) gAnchor.focus(); }
+  gpop.hidden=true; gAnchor=null;
+}
+document.addEventListener("click",e=>{
+  const t=e.target.closest(".term");
+  if(t && gpop.contains(t)){ showTerm(t.dataset.term); return; }
+  if(t && t.closest("#glist")){ const c=document.getElementById("g-"+t.dataset.term); if(c){ c.scrollIntoView({block:"center"}); c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash"); } return; }
+  if(t){ openTerm(t); return; }
+  if(e.target.closest(".gclose")){ closeTerm(); return; }
+  if(e.target.closest(".gmore")){
+    const k=e.target.closest(".gmore").getAttribute("href").slice(3);
+    $("#gSearch").value=""; gFilter="todos"; paintGChips(); renderGlossary(); closeTerm(false);
+    setTimeout(()=>{ const c=document.getElementById("g-"+k); if(c){ c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash"); } },50);
+    return;
+  }
+  if(!gpop.hidden && !gpop.contains(e.target)) closeTerm(false);
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!gpop.hidden) closeTerm(); });
+addEventListener("resize",placeTerm);
+addEventListener("scroll",()=>{ if(!gpop.hidden&&gAnchor&&gAnchor.closest(".sticky")) placeTerm(); },{passive:true});
+
+function paintGChips(){ document.querySelectorAll("#gChips button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.g===gFilter))); }
+$("#gChips").innerHTML=[["todos","Todos"],...Object.entries(G_GROUPS)].map(([k,l])=>`<button type="button" data-g="${k}">${l}</button>`).join("");
+$("#gChips").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; gFilter=b.dataset.g; paintGChips(); renderGlossary(); });
+$("#gSearch").addEventListener("input",renderGlossary);
+paintGChips();
 
 /* ===================== estado ===================== */
 let spend = Object.fromEntries(CATS.map(c=>[c.id,0]));
@@ -728,6 +958,8 @@ function update(){
   renderMonthly(r);
   renderRank(M,p,r);
   renderProfiles(M,p,r,res);
+  renderGlossary();
+  placeTerm();
 }
 
 function renderMain(res,off,r){
@@ -738,7 +970,7 @@ function renderMain(res,off,r){
   const top=[...res.rows].sort((a,b)=>b.aporte-a.aporte).slice(0,2);
   let verdict;
   if(Math.abs(diff)<0.05*Math.max(Math.abs(off),1)) verdict=`Tu inflación es prácticamente igual a la oficial.`;
-  else verdict=`Tus precios subieron <b>${pct(Math.abs(diff)).replace("%"," puntos")}</b> ${diff>0?"más":"menos"} que el índice oficial.`;
+  else verdict=`Tus precios subieron <b>${T("pp",pct(Math.abs(diff)).replace("%"," puntos"))}</b> ${diff>0?"más":"menos"} que el índice oficial.`;
   if(you>0) verdict+=` Lo que más te empuja: ${top.map(t=>t.name.toLowerCase()).join(" y ")}, que juntos explican ${pct(top.reduce((s,t)=>s+t.aporte,0)/you*100)} de tu número.`;
   out.innerHTML=`
     <div class="versus">
@@ -748,7 +980,7 @@ function renderMain(res,off,r){
     <p class="verdict">${verdict}</p>
     ${marimekko(res.rows,you,off)}
     <div class="legend"><span><i style="border-color:var(--you);border-top-width:3px"></i>Tu inflación</span><span><i style="border-color:var(--indec);border-top-style:dashed"></i>INDEC</span><span>Ancho: peso en tu gasto</span><span>Alto: cuánto subió</span></div>
-    <div class="tablebox"><table><thead><tr><th>Rubro</th><th>Tu gasto</th><th>Suba</th><th>Aporte</th></tr></thead>
+    <div class="tablebox"><table><thead><tr><th>Rubro</th><th>${T("ponderacion","Tu gasto")}</th><th>Suba</th><th>${T("aporte","Aporte")}</th></tr></thead>
     <tbody>${[...res.rows].sort((a,b)=>b.aporte-a.aporte).map(x=>`<tr><td><span class="sw" style="background:${x.c}"></span>${x.name}</td><td>${pct(x.share*100)}</td><td>${pct(x.v)}</td><td>${x.aporte.toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2})} pp</td></tr>`).join("")}</tbody></table></div>
     <div class="tools">
       <button type="button" class="btn primary" data-img="download">${icon("image")}Descargar mi imagen</button>
@@ -789,7 +1021,7 @@ function renderIncome(r){
     const need=prev*(1+you/100);
     html+=`<div class="kpis">
       <div class="kpi"><div class="n">${signed(w)}</div><div class="l">Aumento de tu sueldo desde ${baseName}</div></div>
-      <div class="kpi"><div class="n ${realYou>=0?"pos":"neg"}">${signed(realYou)}</div><div class="l">Tu sueldo real, con tu inflación</div></div>
+      <div class="kpi"><div class="n ${realYou>=0?"pos":"neg"}">${signed(realYou)}</div><div class="l">Tu ${T("salario_real","sueldo real")}, con tu inflación</div></div>
       <div class="kpi"><div class="n ${realOff>=0?"pos":"neg"}">${signed(realOff)}</div><div class="l">Tu sueldo real, con la del INDEC</div></div>
     </div>
     <p class="verdict">${realYou>=0
@@ -824,7 +1056,7 @@ function renderMonthly(r){
 }
 
 function renderRank(M,p,r){
-  $("#rankLead").textContent = `${periodText(M,p)}, ${REG_IN[r]}, según el INDEC. En negrita, los rubros en los que vos gastás.`;
+  $("#rankLead").innerHTML = `${periodText(M,p)}, ${REG_IN[r]}, según el ${T("indec","INDEC")}. En negrita, los ${T("division","rubros")} en los que vos gastás.`;
   const rows=CATS.map(c=>({id:c.id,name:c.name,c:c.c,v:M.data[c.id][p][r],mine:spend[c.id]>0})).sort((a,b)=>b.v-a.v);
   const max=Math.max(...rows.map(x=>Math.abs(x.v)),0.1);
   $("#rank").innerHTML = rows.map(x=>`<div class="rk${x.mine?" mine":""}"><span class="nm" title="${x.name}">${catIcon(x.id,"sm")}${x.name}</span>
