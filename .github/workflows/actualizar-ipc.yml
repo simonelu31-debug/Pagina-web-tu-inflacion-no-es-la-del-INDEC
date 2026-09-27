@@ -1,0 +1,57 @@
+# Actualiza los datos del INDEC de la página.
+#
+# Todos los días baja el Excel de aperturas del IPC y, si hay un mes nuevo, lo
+# agrega a index.html y lo sube a main (GitHub Pages publica solo el cambio).
+# El INDEC publica el IPC a mediados de mes, a las 16 h de Argentina.
+#
+# Plan B: si algún día el INDEC no deja descargar el archivo desde GitHub, suban
+# el Excel a la carpeta datos/ con el nombre sh_ipc_aperturas.xls (desde la web
+# de GitHub: Add file > Upload files) y este mismo bot lo procesa.
+name: Actualizar datos del INDEC
+
+on:
+  schedule:
+    - cron: "17 20 * * *" # todos los días a las 17:17 de Argentina (20:17 UTC)
+  workflow_dispatch: # botón "Run workflow" en la pestaña Actions
+  push:
+    branches: [main]
+    paths: ["datos/sh_ipc_aperturas.xls"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actualizar-ipc
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install xlrd==2.0.1
+
+      - name: Leer los datos del INDEC y actualizar la página
+        id: act
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ -f datos/sh_ipc_aperturas.xls ]; then
+            python scripts/actualizar_ipc.py --archivo datos/sh_ipc_aperturas.xls
+          else
+            python scripts/actualizar_ipc.py
+          fi
+
+      - name: Guardar y publicar
+        if: steps.act.outputs.cambios == 'si'
+        env:
+          MENSAJE: ${{ steps.act.outputs.mensaje }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "$MENSAJE"
+          git push
