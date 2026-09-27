@@ -4,56 +4,89 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tu inflación — calculadora de inflación personal</title>
+<meta name="description" content="Calculá tu inflación personal según lo que gastás, compará con el INDEC y fijate si tu sueldo le ganó a tus precios.">
+<script>
+try{const t=localStorage.getItem("tu-inflacion-tema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#EDF0F3; --surface:#FFFFFF; --ink:#18212C; --muted:#5B6878; --line:#D3D9E0;
-  --you:#E0A526; --you-ink:#6B4A00; --indec:#2F5D8A; --neg:#3E8E7E; --field:#F6F8FA;
+  --you:#E0A526; --you-ink:#8A5F00; --indec:#2F5D8A; --good:#2E7D5B; --bad:#B5443C; --field:#F6F8FA;
+  color-scheme:light;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
+    color-scheme:dark;
     --bg:#121820; --surface:#1B232E; --ink:#E8EDF2; --muted:#9AA7B6; --line:#2E3946;
-    --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --neg:#6CC0AE; --field:#222C38;
+    --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --good:#6CC79A; --bad:#EF8A80; --field:#222C38;
   }
 }
 :root[data-theme="dark"]{
+  color-scheme:dark;
   --bg:#121820; --surface:#1B232E; --ink:#E8EDF2; --muted:#9AA7B6; --line:#2E3946;
-  --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --neg:#6CC0AE; --field:#222C38;
+  --you:#F0B940; --you-ink:#F7D48A; --indec:#7FA9D6; --good:#6CC79A; --bad:#EF8A80; --field:#222C38;
 }
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:calc(64px + env(safe-area-inset-top,0px));scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   margin:0;background:var(--bg);color:var(--ink);
   font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums;
 }
-.wrap{max-width:1160px;margin:0 auto;padding:32px 20px 96px}
-header{max-width:62ch;margin-bottom:28px}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+nav.top{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);
+  border-bottom:1px solid var(--line);
+}
+nav.top .wrap{display:flex;gap:10px;align-items:center;padding-top:10px;padding-bottom:10px}
+nav.top .brand{font-stretch:125%;font-weight:800;margin-right:4px;white-space:nowrap;flex-shrink:0}
+nav.top .links{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;min-width:0;flex:1;scrollbar-width:none}
+nav.top .links::-webkit-scrollbar{display:none}
+.theme{
+  flex-shrink:0;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  font:inherit;font-size:.85rem;font-weight:600;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+}
+.theme:hover{border-color:var(--ink)}
+.theme svg{width:18px;height:18px}
+@media (max-width:640px){.theme span{display:none}.theme{padding:7px}}
+nav.top a{color:var(--muted);text-decoration:none;font-size:.9rem;padding:5px 10px;border-radius:999px}
+nav.top a:hover{color:var(--ink);background:var(--surface)}
+header.hero{padding:40px 0 28px;max-width:64ch}
 h1{
   font-stretch:125%;font-weight:800;font-size:clamp(2.4rem,7vw,4.2rem);
   line-height:.95;letter-spacing:-.02em;margin:0 0 14px;
 }
-header p{margin:0;color:var(--muted);font-size:1.05rem}
+header.hero p{margin:0;color:var(--muted);font-size:1.05rem}
+.stamp{margin-top:14px;font-size:.9rem;color:var(--muted)}
+.stamp b{color:var(--ink)}
+section.block{padding:44px 0;border-top:1px solid var(--line)}
+section.block:first-of-type{border-top:0;padding-top:0}
+h2.sec{display:flex;align-items:center;gap:.45em;font-stretch:120%;font-weight:800;font-size:clamp(1.6rem,4vw,2.3rem);letter-spacing:-.01em;line-height:1.05;margin:0 0 8px}
+p.lead{color:var(--muted);max-width:62ch;margin:0 0 24px}
 .grid{display:grid;gap:24px}
 @media (min-width:900px){
-  .grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:start}
-  .results{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
+  .grid.two{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:start}
+  .sticky{position:sticky;top:calc(72px + env(safe-area-inset-top,0px))}
 }
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
-h2{font-stretch:110%;font-size:1.15rem;margin:0 0 4px;font-weight:700}
+h3{font-stretch:110%;font-size:1.1rem;margin:0 0 4px;font-weight:700}
 .sub{color:var(--muted);font-size:.92rem;margin:0 0 16px}
-.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+@media (max-width:560px){.controls{grid-template-columns:1fr 1fr}.controls label:first-child{grid-column:1/-1}}
 label.ctl{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
 select,input{
   font:inherit;color:var(--ink);background:var(--field);
   border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;
 }
-select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible{
+select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{
   outline:3px solid var(--you);outline-offset:2px
 }
 .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
@@ -63,40 +96,149 @@ select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visi
 }
 .presets button:hover{border-color:var(--ink)}
 .row{
-  display:grid;grid-template-columns:minmax(0,1fr) 9.5rem;gap:12px;align-items:center;
+  display:grid;grid-template-columns:2.25rem minmax(0,1fr) 9.5rem;gap:12px;align-items:center;
   padding:9px 0;border-top:1px solid var(--line);
 }
 .row:first-of-type{border-top:0}
 .row .name{font-weight:600;font-size:.95rem}
 .row .hint{display:block;color:var(--muted);font-size:.8rem;font-weight:400}
+@media (max-width:420px){.row{grid-template-columns:2.25rem minmax(0,1fr) 8rem;gap:10px}}
 .money{position:relative}
 .money span{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 .money input{padding-left:24px;text-align:right}
 .total{display:flex;justify-content:space-between;padding-top:12px;border-top:2px solid var(--ink);font-weight:700;margin-top:4px}
-
-/* resultado */
 .versus{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:6px 0 10px}
-.big{font-stretch:125%;font-weight:800;font-size:clamp(2.6rem,6vw,3.6rem);line-height:1;letter-spacing:-.02em}
+.big{font-stretch:125%;font-weight:800;font-size:clamp(2.4rem,6vw,3.5rem);line-height:1;letter-spacing:-.02em}
 .big.you{color:var(--you-ink)}
 .big.indec{color:var(--indec)}
 .who{font-size:.85rem;color:var(--muted);margin-top:6px}
 .verdict{font-size:1.02rem;margin:8px 0 18px;max-width:52ch}
-.chartbox{overflow-x:auto}
 svg{display:block;width:100%;height:auto}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:8px 0 18px}
 .legend i{display:inline-block;width:18px;height:0;border-top:2px solid;vertical-align:middle;margin-right:6px}
+.legend s{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-1px;margin-right:6px;text-decoration:none}
 table{width:100%;border-collapse:collapse;font-size:.88rem}
+.tablebox{overflow-x:auto}
 th{font-weight:600;color:var(--muted);text-align:right;padding:6px 4px;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
 td{padding:7px 4px;text-align:right;border-bottom:1px solid var(--line)}
 td .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;vertical-align:-1px}
-.empty{color:var(--muted);padding:20px 0}
-details{margin-top:24px;color:var(--muted);font-size:.9rem;max-width:70ch}
+.empty{color:var(--muted);padding:12px 0}
+
+/* íconos */
+.ic{display:block;width:100%;height:100%}
+.secic{
+  flex-shrink:0;display:inline-grid;place-items:center;width:1.3em;height:1.3em;border-radius:.32em;
+  background:color-mix(in srgb,var(--you) 22%,transparent);color:var(--you-ink);
+}
+.secic .ic{width:62%;height:62%}
+h3 .secic{font-size:1.25rem;margin-right:.35em;vertical-align:-.3em;display:inline-grid}
+.catic{
+  display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:10px;flex-shrink:0;
+  background:color-mix(in srgb,var(--c) 16%,transparent);
+  color:color-mix(in srgb,var(--c) 72%,var(--ink));
+}
+.catic .ic{width:58%;height:58%}
+.catic.sm{display:inline-grid;width:1.45rem;height:1.45rem;border-radius:6px;vertical-align:middle;margin-right:7px}
+.presets button .ic{display:inline-block;width:1em;height:1em;vertical-align:-.15em;margin-right:5px}
+.prof h4{display:flex;align-items:center;gap:8px}
+
+/* glosario */
+.term{
+  font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:help;
+  text-decoration:underline dotted;text-decoration-color:var(--indec);text-decoration-thickness:2px;text-underline-offset:3px;
+  border-radius:3px;text-align:inherit;letter-spacing:inherit;
+}
+.term:hover,.term[aria-expanded="true"]{background:color-mix(in srgb,var(--indec) 14%,transparent)}
+.gpop{
+  position:absolute;z-index:30;width:min(360px,calc(100vw - 32px));
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;
+  padding:16px 18px 14px;box-shadow:0 12px 32px rgba(0,0,0,.18);font-size:.92rem;line-height:1.45;
+}
+.gpop h4{margin:0 28px 6px 0;font-size:1.02rem;font-stretch:110%}
+.gpop p{margin:0 0 8px}
+.gclose{position:absolute;top:8px;right:8px;font:inherit;font-size:1.3rem;line-height:1;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px}
+.gclose:hover{color:var(--ink)}
+.gmore{font-size:.85rem;font-weight:600}
+.gex{background:var(--field);border-left:3px solid var(--you);padding:8px 10px;border-radius:0 8px 8px 0;font-size:.88rem}
+.grel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:.82rem;color:var(--muted)}
+.grel .term{font-size:.8rem;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--ink);cursor:pointer}
+.gtools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.gtools input{max-width:360px}
+.gtools .btn{padding:6px 12px;font-size:.85rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:.85rem;cursor:pointer;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.glist{display:grid;gap:22px;max-width:820px}
+.ggroup h3{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 8px}
+.gacc{padding:0;overflow:hidden}
+.gitem{border-top:1px solid var(--line);scroll-margin-top:90px;margin:0;max-width:none;color:var(--ink);font-size:1rem}
+.gitem:first-child{border-top:0}
+.gitem summary{
+  list-style:none;display:flex;align-items:center;gap:12px;cursor:pointer;
+  padding:14px 18px;font-weight:600;font-size:1rem;
+}
+.gitem summary::-webkit-details-marker{display:none}
+.gitem summary:hover{background:var(--field)}
+.gitem summary .gname{flex:1;min-width:0}
+.gitem summary .gcat{font-size:.72rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.gitem summary .chev{
+  flex-shrink:0;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--you) 20%,transparent);color:var(--you-ink);transition:transform .2s ease;
+}
+.gitem summary .chev .ic{width:16px;height:16px}
+.gitem[open] summary .chev{transform:rotate(180deg)}
+.gitem[open] summary{color:var(--you-ink)}
+.gbody{padding:0 18px 14px;font-size:.93rem;max-width:68ch}
+.gbody p{margin:0 0 10px}
+.gitem[open] .gbody{animation:gopen .22s ease}
+@keyframes gopen{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.gitem[open] .gbody{animation:none}.gitem summary .chev{transition:none}}
+.gcount{font-size:.82rem;color:var(--muted)}
+.gitem.flash{animation:flash 1.6s ease}
+@keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--you)}100%{box-shadow:0 0 0 0 transparent}}
+.calc-help{font-size:.82rem;color:var(--muted);margin:-8px 0 16px}
+
+/* mes a mes */
+.mmchart .mm{cursor:pointer;outline:none}
+.mmchart .mm rect,.mmchart .mm text{transition:opacity .15s}
+.mmchart:has(.mm.sel) .mm:not(.sel) rect:not([fill="transparent"]){opacity:.4}
+.mmchart .mm:focus-visible rect[fill="transparent"]{stroke:var(--you);stroke-width:2}
+.mmread{margin:10px 0 6px;font-size:.95rem;min-height:1.5em}
+
+/* sueldo */
+.income-in{display:grid;gap:14px}
+.income-in .money input{text-align:right}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.kpi{background:var(--surface);padding:16px}
+.kpi .n{font-stretch:120%;font-weight:800;font-size:1.7rem;line-height:1.1}
+.kpi .l{font-size:.85rem;color:var(--muted);margin-top:4px}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+.scale{position:relative;height:14px;border-radius:7px;background:var(--field);border:1px solid var(--line);overflow:hidden;margin:6px 0 6px}
+.scale div{height:100%;background:var(--you)}
+.scale-l{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+
+/* ranking */
+.rank{display:grid;gap:6px}
+.rk{display:grid;grid-template-columns:minmax(0,13rem) minmax(0,1fr) 4.2rem;gap:10px;align-items:center;font-size:.92rem}
+@media (max-width:560px){.rk{grid-template-columns:minmax(0,10rem) minmax(0,1fr) 3.6rem;gap:8px;font-size:.85rem}}
+.rk .bar{height:18px;border-radius:3px;min-width:2px}
+.rk .v{text-align:right;font-weight:600}
+.rk.mine .nm{font-weight:700}
+.rk .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inc-note{font-size:.82rem;color:var(--muted);margin:-6px 0 0}
+.rk .zero{position:relative}
+/* perfiles */
+.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.prof h4{font-size:1rem;margin:0 0 2px}
+.prof .n{font-stretch:125%;font-weight:800;font-size:2.4rem;line-height:1.05;margin:8px 0 2px}
+.prof p{font-size:.88rem;color:var(--muted);margin:6px 0 0}
+.prof.you-card{border-color:var(--you);border-width:2px}
+details{margin-top:8px;color:var(--muted);font-size:.93rem;max-width:72ch}
 summary{cursor:pointer;color:var(--ink);font-weight:600}
 details p{margin:10px 0}
 a{color:var(--indec)}
-
-/* barra móvil */
+footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px solid var(--line)}
 .peek{
   position:fixed;left:0;right:0;bottom:0;z-index:5;
   background:var(--ink);color:var(--bg);
@@ -105,235 +247,1306 @@ a{color:var(--indec)}
 }
 .peek b{font-stretch:120%;font-size:1.15rem;color:var(--you)}
 .peek a{color:var(--bg);font-weight:600}
-@media (min-width:900px){.peek{display:none}}
-@media (prefers-reduced-motion:no-preference){ .bar{transition:all .35s ease} }
+@media (min-width:900px){.peek{display:none} footer{padding-bottom:40px}}
+
+/* facturas */
+.lhead,.lrow{display:grid;grid-template-columns:minmax(0,1fr) 7.2rem 7.2rem 4.6rem 1.8rem;gap:8px;align-items:center}
+@media (min-width:900px){#facturas .grid.two{grid-template-columns:minmax(0,1.4fr) minmax(0,.9fr)}}
+.lhead{font-size:.8rem;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--line)}
+.lhead span:nth-child(n+2){text-align:right}
+.lrow{padding:10px 0;border-bottom:1px solid var(--line)}
+.lname{display:flex;flex-direction:column;gap:4px;min-width:0}
+.lname input{font-weight:600;padding:6px 8px}
+.lnm-row{display:flex;align-items:center;gap:8px;min-width:0}
+.lnm-row .catic{width:1.9rem;height:1.9rem;border-radius:8px}
+.lname select{font-size:.8rem;padding:4px 6px;color:var(--muted)}
+.lvar{text-align:right;line-height:1.2}
+.lvar b{display:block;font-size:1rem}
+.lvar small{color:var(--muted);font-size:.75rem}
+.del{font:inherit;background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.2rem;border-radius:6px;padding:4px}
+.del:hover{color:var(--bad)}
+@media (max-width:640px){
+  .lhead{display:none}
+  .lrow{grid-template-columns:1fr 1fr 4.6rem;grid-template-areas:"name name del" "prev cur var"}
+  .lrow .lname{grid-area:name} .lrow .prev{grid-area:prev} .lrow .cur{grid-area:cur} .lrow .lvar{grid-area:var} .lrow .del{grid-area:del;justify-self:end}
+  .lrow .money::before{content:attr(data-label);display:block;font-size:.75rem;color:var(--muted);margin-bottom:2px}
+  .lrow .money span{top:auto;bottom:10px;transform:none}
+}
+.btn{font:inherit;font-size:.9rem;cursor:pointer;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+.tools .note{font-size:.82rem;color:var(--muted)}
+.btn .ic{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.18em;margin-right:6px}
+.btn[disabled]{opacity:.6;cursor:progress}
+.ups{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:.92rem}
+.ups li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:6px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
+<nav class="top" aria-label="Secciones">
+  <div class="wrap">
+    <span class="brand">Tu inflación</span>
+    <div class="links">
+    <a href="#calculadora">Calculadora</a>
+    <a href="#facturas">Tus facturas</a>
+    <a href="#sueldo">Tu sueldo</a>
+    <a href="#mes-a-mes">Mes a mes</a>
+    <a href="#que-subio">Qué subió</a>
+    <a href="#perfiles">Perfiles</a>
+    <a href="#glosario">Glosario</a>
+    <a href="#metodologia">Cómo se calcula</a>
+    </div>
+    <button type="button" class="theme" id="themeBtn"></button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="hero">
     <h1>Tu inflación no es la del INDEC</h1>
-    <p>El IPC mide cuánto suben los precios de una canasta promedio. Pero nadie gasta como el promedio. Cargá cuánto gastás por mes en cada cosa y calculamos cuánto subió tu propio costo de vida, con los datos oficiales de agosto de 2026.</p>
+    <p>El <button type="button" class="term" data-term="ipc">IPC</button> mide cuánto suben los precios de una <button type="button" class="term" data-term="canasta">canasta</button> promedio. Pero nadie gasta como el promedio. Podés medir tu propia inflación de dos formas: rápido, cargando cuánto gastás en cada rubro, o exacto, anotando tus facturas de cada mes. Y de paso, ver si tu sueldo le ganó.</p>
+    <p class="stamp">Último dato cargado: <b id="lastMonth"></b>, publicado por el INDEC.</p>
   </header>
 
-  <div class="grid">
-    <section class="panel" aria-labelledby="t-gastos">
-      <h2 id="t-gastos">Tus gastos de un mes típico</h2>
-      <p class="sub">No hace falta exactitud: con montos aproximados alcanza. Lo que importa es la proporción entre rubros.</p>
-
-      <div class="controls">
-        <label class="ctl">Dónde vivís
-          <select id="region">
-            <option value="0">GBA (CABA y conurbano)</option>
-            <option value="1">Región Pampeana</option>
-            <option value="2">Noreste</option>
-            <option value="3">Noroeste</option>
-            <option value="4">Cuyo</option>
-            <option value="5">Patagonia</option>
-          </select>
-        </label>
-        <label class="ctl">Período
-          <select id="period">
-            <option value="m">Agosto 2026 (mensual)</option>
-            <option value="a">Enero a agosto 2026</option>
-            <option value="y">Últimos 12 meses</option>
-          </select>
-        </label>
+  <!-- 1. CALCULADORA -->
+  <section class="block" id="calculadora">
+    <div class="grid two">
+      <div class="panel">
+        <h3><span class="secic" data-icon="calc"></span>Tus gastos de un mes típico</h3>
+        <p class="sub">No hace falta exactitud: con montos aproximados alcanza. Lo que importa es la proporción entre rubros.</p>
+        <div class="controls">
+          <label class="ctl">Mes del informe
+            <select id="month"></select>
+          </label>
+          <label class="ctl">Dónde vivís
+            <select id="region">
+              <option value="0">GBA</option>
+              <option value="1">Pampeana</option>
+              <option value="2">Noreste</option>
+              <option value="3">Noroeste</option>
+              <option value="4">Cuyo</option>
+              <option value="5">Patagonia</option>
+            </select>
+          </label>
+          <label class="ctl">Comparar
+            <select id="period">
+              <option value="m">En el mes</option>
+              <option value="a">En el año</option>
+              <option value="y">En 12 meses</option>
+            </select>
+          </label>
+        </div>
+        <p class="calc-help">¿Qué significa <button type="button" class="term" data-term="mensual">en el mes</button>, <button type="button" class="term" data-term="acumulada">en el año</button> o <button type="button" class="term" data-term="interanual">en 12 meses</button>?</p>
+        <div class="presets" role="group" aria-label="Cargar un ejemplo">
+          <button type="button" data-preset="estudiante">Estudiante que alquila</button>
+          <button type="button" data-preset="jubilada">Jubilada con casa propia</button>
+          <button type="button" data-preset="familia">Familia con auto</button>
+          <button type="button" data-preset="vaciar">Vaciar</button>
+        </div>
+        <div id="rows"></div>
+        <div class="total"><span>Total mensual</span><span id="total">$ 0</span></div>
       </div>
 
-      <div class="presets" role="group" aria-label="Cargar un ejemplo">
-        <button type="button" data-preset="estudiante">Estudiante que alquila</button>
-        <button type="button" data-preset="jubilada">Jubilada con casa propia</button>
-        <button type="button" data-preset="familia">Familia con auto</button>
-        <button type="button" data-preset="vaciar">Vaciar</button>
+      <div class="panel sticky" id="resultado" aria-live="polite">
+        <h3><span class="secic" data-icon="chart"></span>Resultado</h3>
+        <p class="sub" id="periodLabel"></p>
+        <div id="out"></div>
       </div>
+    </div>
+  </section>
 
-      <div id="rows"></div>
-      <div class="total"><span>Total mensual</span><span id="total">$ 0</span></div>
-    </section>
 
-    <section class="panel results" id="resultado" aria-labelledby="t-res" aria-live="polite">
-      <h2 id="t-res">Resultado</h2>
-      <p class="sub" id="periodLabel"></p>
-      <div id="out"></div>
-    </section>
-  </div>
+  <!-- 1b. FACTURAS -->
+  <section class="block" id="facturas">
+    <h2 class="sec"><span class="secic" data-icon="receipt"></span>Tu inflación con tus facturas reales</h2>
+    <p class="lead">¿Te llegó la factura de internet de este mes? Anotá cuánto pagaste en cada cosa este mes y el anterior, y calculamos cuánto subió lo que vos pagás, sin estimaciones. Cada mes queda guardado en tu navegador, así con el tiempo armás tu propia serie.</p>
+    <div class="grid two">
+      <div class="panel">
+        <div class="controls" style="grid-template-columns:1fr 1fr">
+          <label class="ctl">Mes de las facturas <select id="lMonth"></select></label>
+          <label class="ctl">Comparar con el INDEC de
+            <select id="lRegion">
+              <option value="0">GBA</option><option value="1">Pampeana</option><option value="2">Noreste</option>
+              <option value="3">Noroeste</option><option value="4">Cuyo</option><option value="5">Patagonia</option>
+            </select>
+          </label>
+        </div>
+        <div class="lhead"><span>Concepto</span><span id="lPrevH"></span><span id="lCurH"></span><span>Suba</span><span></span></div>
+        <div id="lrows"></div>
+        <div class="tools"><button type="button" class="btn" id="lAdd">Agregar concepto</button></div>
+      </div>
+      <div class="panel sticky" id="lOut" aria-live="polite"></div>
+    </div>
+    <div class="panel" id="lHist" style="margin-top:24px"></div>
+    <div class="tools">
+      <button type="button" class="btn" id="lExport">Descargar copia de mis facturas</button>
+      <label class="btn" for="lImport" style="display:inline-block">Cargar una copia</label>
+      <input type="file" id="lImport" accept=".json,application/json" hidden>
+      <button type="button" class="btn" id="lReset">Borrar todas las facturas</button>
+      <span class="note">Tus datos se guardan solo en este navegador. Si cambiás de compu o de celular, usá la copia para llevarlos.</span>
+    </div>
+  </section>
 
-  <details>
-    <summary>Cómo lo calculamos</summary>
-    <p>Tu inflación es un promedio ponderado: cada rubro pesa según la parte de tu gasto que se lleva, y se multiplica por cuánto subieron los precios de ese rubro en tu región según el INDEC. Es la misma lógica del IPC, pero con tus ponderaciones en lugar de las de la canasta oficial.</p>
-    <p>En el gráfico, el ancho de cada barra es cuánto pesa ese rubro en tu gasto y la altura es cuánto subió. El área de cada barra es lo que aporta a tu inflación, y la línea amarilla es el promedio de todas: tu número.</p>
-    <p>Fuentes: INDEC, Índice de precios al consumidor, agosto de 2026 (cuadros 1 a 3 y 21 a 23). Alquiler, luz y gas, prepaga, remedios, transporte público y auto usan las aperturas regionales; el resto usa las divisiones. El IPC oficial todavía pondera con la encuesta de gastos 2004/05, así que la canasta "promedio" es la de hace veinte años.</p>
-    <p>Limitaciones: para el acumulado y el interanual usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos, tu inflación real puede ser más baja.</p>
-  </details>
-</div>
+  <!-- 2. SUELDO -->
+  <section class="block" id="sueldo">
+    <h2 class="sec"><span class="secic" data-icon="wallet"></span>¿Tu sueldo le ganó a tus precios?</h2>
+    <p class="lead">Cargá cuánto cobrás ahora, elegí con qué mes querés comparar y cuánto cobrabas en ese momento. Lo comparamos contra tu inflación y contra la oficial para calcular tu <button type="button" class="term" data-term="salario_real">salario real</button>. Estos datos quedan solo en tu navegador.</p>
+    <div class="grid two">
+      <div class="panel income-in">
+        <label class="ctl">Ingreso mensual neto actual
+          <div class="money"><span>$</span><input id="incNow" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+        </label>
+        <label class="ctl">Comparar con tu ingreso de
+          <select id="incBase"></select>
+        </label>
+        <p class="inc-note" id="incNote"></p>
+        <label class="ctl"><span id="incPrevLabel">Ingreso neto de ese mes</span>
+          <div class="money"><span>$</span><input id="incPrev" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+        </label>
+        <p class="sub" style="margin:0">Si cobrás en negro, por changas o sos monotributista, poné un promedio de lo que te entra por mes.</p>
+      </div>
+      <div class="panel" id="incomeOut" aria-live="polite"></div>
+    </div>
+  </section>
 
-<div class="peek" aria-hidden="true"><span>Tu inflación <b id="peekYou">—</b> &nbsp; INDEC <span id="peekIndec">—</span></span><a href="#resultado">Ver detalle</a></div>
+  <!-- 3. MES A MES -->
+  <section class="block" id="mes-a-mes">
+    <h2 class="sec"><span class="secic" data-icon="calendar"></span>Tu inflación, mes a mes</h2>
+    <p class="lead">Con tu misma canasta, así se movieron tus precios en cada informe del INDEC que tenemos cargado, al lado del índice oficial de tu <button type="button" class="term" data-term="region">región</button>.</p>
+    <div class="panel" id="monthly"></div>
+  </section>
+
+  <!-- 4. QUÉ SUBIÓ -->
+  <section class="block" id="que-subio">
+    <h2 class="sec"><span class="secic" data-icon="trend"></span>Qué subió más</h2>
+    <p class="lead" id="rankLead"></p>
+    <div class="panel"><div class="rank" id="rank"></div></div>
+  </section>
+
+  <!-- 5. PERFILES -->
+  <section class="block" id="perfiles">
+    <h2 class="sec"><span class="secic" data-icon="people"></span>Mismos precios, distintas inflaciones</h2>
+    <p class="lead">Tres hogares imaginarios en tu región, con los mismos precios pero canastas distintas. Sirve para ver por qué la inflación que siente cada uno puede ser tan diferente del número oficial.</p>
+    <div class="profiles" id="profiles"></div>
+  </section>
+
+  <!-- 5b. GLOSARIO -->
+  <section class="block" id="glosario">
+    <h2 class="sec"><span class="secic" data-icon="book"></span>Glosario</h2>
+    <p class="lead">Las palabras que usan los economistas y los noticieros, explicadas con ejemplos. Tocá un término para ver su definición. En toda la página, las palabras subrayadas con puntitos también se pueden tocar.</p>
+    <div class="gtools">
+      <input type="search" id="gSearch" placeholder="Buscar, por ejemplo: interanual" aria-label="Buscar en el glosario" autocomplete="off">
+      <div class="chips" id="gChips" role="group" aria-label="Filtrar por tema"></div>
+      <button type="button" class="btn" id="gToggleAll">Abrir todos</button>
+    </div>
+    <div class="glist" id="glist"></div>
+  </section>
+
+  <!-- 6. METODOLOGÍA -->
+  <section class="block" id="metodologia">
+    <h2 class="sec"><span class="secic" data-icon="info"></span>Cómo se calcula</h2>
+    <details open>
+      <summary>La fórmula</summary>
+      <p>Tu inflación es un <button type="button" class="term" data-term="promedio_ponderado">promedio ponderado</button>: cada rubro pesa según la parte de tu gasto que se lleva, y se multiplica por cuánto subieron los precios de ese rubro en tu región según el INDEC. Es la misma lógica del IPC, pero con tus <button type="button" class="term" data-term="ponderacion">ponderaciones</button> en lugar de las de la canasta oficial.</p>
+      <p>En el gráfico de la calculadora, el ancho de cada barra es cuánto pesa ese rubro en tu gasto y la altura es cuánto subió. El área de cada barra es lo que aporta a tu inflación, y la línea amarilla es el promedio de todas: tu número.</p>
+    </details>
+    <details>
+      <summary>Con tus facturas</summary>
+      <p>Sumamos lo que pagaste este mes en todos los conceptos que tienen monto en los dos meses y lo comparamos con lo que pagaste el mes anterior por esos mismos conceptos. Así, cada factura pesa según cuánto te cuesta: si el alquiler sube 5% te pega mucho más que si el celular sube 5%.</p>
+      <p>Ojo con los conceptos que dependen de cuánto consumís, como el gas en invierno o el supermercado: ahí la factura puede subir porque usaste más, no porque subió el precio. Para los que tienen precio fijo (alquiler, internet, prepaga, cuotas) la medición es exacta. La comparación con el INDEC aparece cuando el organismo publica el dato de ese mes, alrededor del día 14 del mes siguiente.</p>
+    </details>
+    <details>
+      <summary>Tu sueldo en términos reales</summary>
+      <p>Para comparar contra el mes que elijas, encadenamos los datos del INDEC en un <button type="button" class="term" data-term="indice_encadenado">índice de precios</button>: la variación mensual, la acumulada en el año y la interanual permiten armar un índice de precios para cada rubro y ver cuánto subió entre ese mes y el último dato publicado. Por eso solo aparecen los meses que esos informes permiten calcular; los más recientes se habilitan cuando el INDEC publica la inflación que falta.</p>
+      <p>La variación real se calcula como (1 + suba de tu sueldo) / (1 + inflación) − 1. Por ejemplo, si tu sueldo subió 30% y tu inflación fue 35%, tu poder de compra cayó cerca de 3,7%, no 5%. El "sueldo que necesitarías" es tu ingreso anterior ajustado por tu inflación.</p>
+    </details>
+    <details>
+      <summary>Fuentes</summary>
+      <p>INDEC, Índice de precios al consumidor, informes de enero a agosto de 2026 (índices y variaciones por región, divisiones y aperturas). Alquiler y expensas, luz y gas, prepaga, remedios, transporte público y auto usan las <button type="button" class="term" data-term="apertura">aperturas</button> regionales; el resto usa las <button type="button" class="term" data-term="division">divisiones</button>. El IPC oficial todavía pondera con la <button type="button" class="term" data-term="engho">encuesta de gastos</button> 2004/05, así que la canasta "promedio" es la de hace veinte años.</p>
+    </details>
+    <details>
+      <summary>Limitaciones</summary>
+      <p>Para el acumulado y los 12 meses usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos (<button type="button" class="term" data-term="sustitucion">efecto sustitución</button>), tu inflación real puede ser más baja. Los perfiles de ejemplo son hogares inventados con montos aproximados, no datos de encuestas.</p>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Hecho por dos estudiantes de Economía de la UBA con datos públicos del INDEC. No guardamos ni enviamos lo que cargás: todo queda en tu navegador.</div>
+</footer>
+
+<div class="peek" aria-hidden="true"><span>Tu inflación <b id="peekYou">—</b> &nbsp; INDEC <span id="peekIndec">—</span></span><a href="#resultado">Ver</a></div>
 
 <script>
-// Orden de regiones: GBA, Pampeana, Noreste, Noroeste, Cuyo, Patagonia
-// m = agosto vs julio 2026, a = agosto vs dic 2025, y = agosto 2026 vs agosto 2025
-const GENERAL = {
-  m:[1.6,1.6,1.8,1.8,1.7,1.8],
-  a:[21.4,20.9,24.4,22.3,20.5,19.6],
-  y:[33.7,33.1,37.0,34.0,33.4,31.6]
-};
+/* =====================================================================
+   DATOS DEL INDEC
+   Orden de cada lista de 6 números: GBA, Pampeana, Noreste, Noroeste, Cuyo, Patagonia
+   m = variación del mes (cuadros 1 y 21)
+   a = variación desde diciembre del año anterior (cuadros 2 y 22)
+   y = variación contra el mismo mes del año anterior (cuadros 3 y 23)
+
+   PARA AGREGAR UN MES NUEVO: copiá el bloque completo del mes más reciente,
+   pegalo ARRIBA de todo dentro de MONTHS, cambiá year/month y reemplazá los números.
+   ===================================================================== */
+const MONTHS = [
+  { year:2026, month:8,
+    general:{ m:[1.6,1.6,1.8,1.8,1.7,1.8], a:[21.4,20.9,24.4,22.3,20.5,19.6], y:[33.7,33.1,37.0,34.0,33.4,31.6] },
+    data:{
+      alim: { m:[1.4,1.7,2.2,2.0,1.9,2.2],     a:[21.9,22.1,26.0,23.4,20.8,19.5], y:[34.3,34.9,41.8,37.3,34.8,30.0] },
+      alq:  { m:[2.6,3.2,4.9,2.6,3.0,3.2],     a:[23.4,32.2,41.0,35.7,30.2,45.1], y:[42.0,55.7,72.1,58.3,50.5,67.8] },
+      ener: { m:[2.5,4.3,4.7,2.1,1.6,0.7],     a:[37.9,32.0,74.6,38.5,33.0,26.8], y:[55.4,52.3,87.0,52.0,60.2,52.5] },
+      tpub: { m:[2.9,2.2,0.0,1.8,0.4,5.0],     a:[34.5,34.2,18.7,42.3,36.7,25.9], y:[52.1,53.5,25.6,54.4,52.8,42.0] },
+      auto: { m:[1.2,0.8,0.3,1.6,1.2,1.0],     a:[24.9,24.0,23.6,26.6,26.8,27.4], y:[43.4,41.8,47.0,48.5,49.0,52.1] },
+      prep: { m:[2.1,2.1,4.1,2.1,2.1,2.0],     a:[23.1,22.8,26.0,20.6,24.0,21.5], y:[33.7,34.5,37.0,29.6,34.6,32.1] },
+      rem:  { m:[2.0,2.5,2.7,2.4,2.6,2.0],     a:[20.8,20.7,19.9,19.9,19.9,18.0], y:[30.3,30.8,29.0,28.8,29.2,26.2] },
+      com:  { m:[2.4,2.2,1.8,2.2,2.3,2.2],     a:[24.1,23.3,22.0,23.1,21.9,21.5], y:[38.2,35.9,34.0,36.3,35.3,34.5] },
+      rest: { m:[2.0,1.4,3.1,2.7,1.0,2.2],     a:[23.7,23.1,24.7,24.5,19.0,21.0], y:[34.5,36.6,37.4,31.9,27.5,30.9] },
+      rec:  { m:[0.3,-0.7,0.3,-0.2,0.0,1.4],   a:[21.9,22.3,19.2,20.9,19.7,17.9], y:[33.2,31.5,28.8,28.5,28.0,25.1] },
+      edu:  { m:[2.5,2.4,0.9,2.3,4.3,3.4],     a:[31.5,26.0,42.4,32.8,29.0,29.9], y:[41.8,35.8,43.4,44.5,38.3,38.9] },
+      ropa: { m:[-1.1,-0.3,-1.8,-0.2,1.7,-0.2],a:[2.3,6.2,6.5,5.0,8.1,9.3],       y:[10.0,11.3,12.2,11.8,15.7,13.1] },
+      hogar:{ m:[1.5,1.6,1.4,1.4,0.4,1.4],     a:[16.2,16.8,13.4,16.2,14.7,13.7], y:[25.8,24.1,18.5,24.0,22.4,21.4] },
+      cuid: { m:[2.6,2.6,1.0,2.3,2.3,1.9],     a:[22.1,19.9,17.9,18.2,20.9,17.7], y:[35.4,31.4,27.0,29.1,32.8,29.7] },
+      alc:  { m:[2.2,2.0,1.4,2.4,1.9,2.2],     a:[13.4,13.2,13.9,13.2,13.5,14.8], y:[23.1,21.9,22.2,22.6,22.6,24.4] }
+    }
+  },
+  { year:2026, month:7,
+    general:{ m:[2.3,2.0,2.0,2.0,1.9,2.0], a:[19.4,19.0,22.3,20.2,18.6,17.5], y:[34.0,33.4,36.9,34.2,34.0,31.8] },
+    data:{
+      alim: { m:[2.4,1.7,1.5,1.8,1.1,1.7],     a:[20.2,20.1,23.2,21.0,18.6,16.9], y:[34.4,34.4,40.7,35.8,34.3,28.7] },
+      alq:  { m:[0.3,3.6,3.9,4.7,2.5,2.5],     a:[20.3,28.1,34.5,32.2,26.4,40.7], y:[42.3,56.6,68.2,66.6,53.2,72.5] },
+      ener: { m:[2.1,1.7,4.6,3.3,2.2,2.3],     a:[34.5,26.6,66.8,35.7,31.0,25.9], y:[54.9,49.7,84.6,53.1,61.7,54.2] },
+      tpub: { m:[5.0,2.7,2.5,3.5,8.3,3.5],     a:[30.8,31.3,18.7,39.8,36.2,19.9], y:[49.9,53.5,26.7,54.0,53.3,36.4] },
+      auto: { m:[1.0,0.5,0.7,1.0,1.2,0.7],     a:[23.5,22.9,23.2,24.6,25.3,26.2], y:[46.8,45.5,51.5,51.3,51.7,57.2] },
+      prep: { m:[2.7,2.3,3.9,1.9,2.2,2.1],     a:[20.6,20.3,21.0,18.1,21.4,19.1], y:[33.3,33.9,33.7,29.8,34.3,31.8] },
+      rem:  { m:[2.3,2.4,2.6,2.4,2.3,2.5],     a:[18.4,17.8,16.8,17.1,16.8,15.6], y:[29.3,29.1,27.2,27.0,27.4,25.0] },
+      com:  { m:[2.6,2.2,2.3,2.0,2.4,2.3],     a:[21.2,20.7,19.8,20.4,19.2,18.9], y:[37.6,35.5,33.7,34.6,35.2,34.5] },
+      rest: { m:[3.3,2.4,2.0,1.5,2.0,4.8],     a:[21.4,21.4,21.0,21.2,17.9,18.4], y:[35.7,39.7,38.4,35.2,32.3,30.4] },
+      rec:  { m:[5.8,4.3,4.0,5.3,5.1,2.8],     a:[21.5,23.1,18.9,21.1,19.6,16.2], y:[32.5,33.7,29.4,31.7,28.9,24.8] },
+      edu:  { m:[2.3,1.0,7.5,1.2,0.5,2.2],     a:[28.3,23.0,41.1,29.8,23.6,25.6], y:[40.2,35.2,45.8,51.1,40.1,44.5] },
+      ropa: { m:[-3.0,0.1,0.0,0.4,-0.7,0.8],   a:[3.5,6.6,8.5,5.3,6.2,9.5],       y:[11.4,10.7,13.7,11.8,13.1,13.7] },
+      hogar:{ m:[2.1,2.3,1.4,2.3,2.1,1.4],     a:[14.5,15.0,11.9,14.6,14.3,12.1], y:[25.0,23.6,17.5,22.9,24.1,20.4] },
+      cuid: { m:[2.2,2.6,1.9,1.7,1.8,1.5],     a:[19.0,16.9,16.7,15.6,18.2,15.5], y:[34.8,31.2,28.1,28.9,33.4,29.5] },
+      alc:  { m:[1.5,1.5,1.3,1.3,1.7,1.5],     a:[10.9,10.9,12.3,10.5,11.4,12.3], y:[24.6,23.6,22.9,23.8,24.7,26.8] }
+    }
+  },
+  { year:2026, month:6,
+    general:{ m:[1.9,2.0,1.9,1.7,1.6,1.6], a:[16.8,16.7,19.9,17.8,16.4,15.1], y:[33.4,33.4,36.5,33.8,34.0,32.0] },
+    data:{
+      alim: { m:[1.2,1.3,1.5,1.3,1.6,1.3],     a:[17.3,18.1,21.4,18.9,17.3,15.0], y:[33.9,34.7,40.2,35.5,35.7,28.2] },
+      alq:  { m:[7.0,3.8,3.8,3.1,4.1,1.3],     a:[20.0,23.7,29.5,26.2,23.3,37.2], y:[40.8,55.9,72.1,70.2,55.3,74.7] },
+      ener: { m:[1.1,2.2,6.4,2.2,0.2,4.6],     a:[31.8,24.4,59.5,31.3,28.2,23.1], y:[54.0,50.2,79.3,50.8,60.7,53.9] },
+      tpub: { m:[4.3,7.3,0.1,4.9,0.4,1.1],     a:[24.5,27.8,15.9,35.1,25.8,15.9], y:[49.7,53.8,24.0,54.3,45.6,33.3] },
+      auto: { m:[1.6,1.3,1.3,1.3,0.9,1.2],     a:[22.3,22.3,22.4,23.4,23.8,25.2], y:[48.8,49.1,55.9,56.3,52.6,61.8] },
+      prep: { m:[2.8,2.6,2.4,2.7,2.6,2.0],     a:[17.5,17.6,16.4,15.9,18.8,16.6], y:[31.8,33.4,31.0,29.1,33.6,31.4] },
+      rem:  { m:[3.2,2.7,2.7,2.8,2.8,2.7],     a:[15.8,14.9,13.9,14.3,14.3,12.8], y:[27.0,26.8,24.4,23.9,25.0,22.8] },
+      com:  { m:[0.3,2.0,-0.1,1.2,0.0,0.3],    a:[18.1,18.1,17.1,18.1,16.4,16.2], y:[37.4,35.4,33.5,34.7,35.2,34.5] },
+      rest: { m:[1.2,2.3,1.2,1.7,1.8,1.1],     a:[17.5,18.6,18.6,19.5,15.6,13.0], y:[35.1,39.9,41.1,37.5,32.5,27.6] },
+      rec:  { m:[4.0,5.2,2.8,2.5,3.4,3.2],     a:[14.9,18.0,14.3,15.0,13.8,13.0], y:[30.8,36.4,28.1,28.4,27.7,24.8] },
+      edu:  { m:[1.4,1.4,2.8,3.5,2.0,1.8],     a:[25.4,21.8,31.3,28.3,23.0,22.9], y:[39.3,36.6,42.3,51.8,41.3,44.4] },
+      ropa: { m:[0.1,0.7,0.7,0.1,1.2,0.9],     a:[6.7,6.5,8.4,4.9,7.0,8.6],       y:[13.0,10.0,14.4,11.0,13.2,14.0] },
+      hogar:{ m:[1.6,1.5,1.8,1.4,1.2,1.4],     a:[12.2,12.4,10.3,12.0,11.8,10.6], y:[24.4,22.7,17.4,21.7,23.1,20.2] },
+      cuid: { m:[1.9,1.5,2.2,2.2,1.4,2.5],     a:[16.4,14.0,14.6,13.7,16.0,13.8], y:[35.3,30.4,27.9,27.7,33.0,30.4] },
+      alc:  { m:[2.0,2.1,2.4,2.1,2.6,2.2],     a:[9.2,9.3,10.9,9.1,9.5,10.6],     y:[23.1,23.0,22.3,23.1,23.3,25.3] }
+    }
+  }
+,
+  { year:2026, month:5,
+    general:{ m:[2.3,2.0,2.6,2.1,2.1,1.7], a:[14.6,14.3,17.6,15.9,14.6,13.3], y:[33.6,32.4,35.3,33.2,33.2,32.2] },
+    data:{
+      alim: { m:[2.8,2.3,2.1,2.1,1.9,2.0],     a:[15.9,16.6,19.6,17.4,15.4,13.5],  y:[33.5,33.4,38.2,34.1,33.5,27.7] },
+      alq:  { m:[2.5,3.1,6.7,2.5,3.6,6.6],     a:[12.1,19.1,24.7,22.4,18.5,35.5],  y:[41.2,60.4,79.9,73.2,57.9,87.5] },
+      ener: { m:[0.8,1.7,7.0,4.8,4.1,-3.4],    a:[30.4,21.7,49.9,28.4,27.9,17.8],  y:[54.8,48.7,71.1,49.8,56.1,50.9] },
+      tpub: { m:[3.6,5.2,-0.2,0.3,4.1,1.6],    a:[19.4,19.1,15.8,28.8,25.3,14.6],  y:[48.6,46.7,23.6,49.7,46.1,35.5] },
+      auto: { m:[1.9,1.4,1.6,1.3,2.7,1.6],     a:[20.3,20.7,20.8,21.8,22.7,23.8],  y:[48.9,48.8,57.1,56.0,52.4,64.1] },
+      prep: { m:[2.9,2.9,3.0,2.8,3.5,3.1],     a:[14.3,14.7,13.6,12.8,15.8,14.3],  y:[31.7,33.3,30.5,29.2,33.8,32.2] },
+      rem:  { m:[2.5,2.3,2.2,2.6,2.4,1.9],     a:[12.2,11.9,10.9,11.2,11.2,9.9],   y:[25.5,25.7,23.2,22.5,23.8,22.1] },
+      com:  { m:[3.7,2.9,3.9,3.8,3.1,3.6],     a:[17.8,15.9,17.2,16.8,16.4,15.8],  y:[39.7,35.3,34.9,33.9,37.1,36.8] },
+      rest: { m:[2.1,1.3,3.2,1.9,1.1,1.5],     a:[16.2,15.9,17.2,17.5,13.5,11.8],  y:[36.5,39.2,43.8,37.5,33.5,29.9] },
+      rec:  { m:[3.0,2.6,2.5,2.8,2.2,2.5],     a:[10.5,12.1,11.2,12.2,10.1,9.5],   y:[30.9,30.3,26.1,27.8,28.3,22.8] },
+      edu:  { m:[4.0,2.2,0.7,1.2,2.9,3.0],     a:[23.7,20.1,27.8,24.0,20.6,20.7],  y:[42.5,40.4,40.8,53.9,40.7,43.8] },
+      ropa: { m:[-0.3,0.8,1.4,0.3,0.5,1.9],    a:[6.5,5.8,7.7,4.8,5.7,7.7],        y:[12.7,10.3,14.7,13.0,11.4,14.8] },
+      hogar:{ m:[1.1,1.6,1.3,1.9,2.1,1.3],     a:[10.5,10.6,8.4,10.4,10.5,9.0],    y:[25.1,22.8,16.4,22.4,24.0,22.1] },
+      cuid: { m:[2.4,2.3,2.4,2.8,2.3,1.9],     a:[14.2,12.3,12.0,11.2,14.5,11.0],  y:[33.9,30.4,27.0,25.4,31.8,27.2] },
+      alc:  { m:[1.1,0.8,0.3,0.4,-0.2,0.5],    a:[7.0,7.0,8.3,6.8,6.7,8.2],        y:[24.4,23.7,21.8,23.7,23.6,26.1] }
+    }
+  },
+  { year:2026, month:4,
+    general:{ m:[2.8,2.4,2.7,2.5,2.1,2.6], a:[12.1,12.1,14.6,13.5,12.2,11.4], y:[32.6,31.9,33.5,32.1,32.6,32.0] },
+    data:{
+      alim: { m:[1.2,1.8,2.4,1.5,0.4,1.8],     a:[12.7,14.0,17.2,14.9,13.3,11.2],  y:[30.4,31.1,36.3,32.2,32.0,26.2] },
+      alq:  { m:[2.3,4.4,2.8,4.3,3.3,11.5],    a:[9.4,15.5,16.9,19.5,14.4,27.1],   y:[45.1,62.2,78.6,79.0,59.0,86.2] },
+      ener: { m:[8.0,0.8,4.1,3.9,0.0,-0.8],    a:[29.3,19.6,40.1,22.6,22.9,21.9],  y:[56.4,45.8,59.4,45.8,48.5,59.8] },
+      tpub: { m:[0.9,2.3,3.5,2.8,2.6,-0.1],    a:[15.2,13.3,16.0,28.3,20.4,12.8],  y:[45.6,43.8,23.9,50.2,51.0,34.6] },
+      auto: { m:[8.7,8.9,10.6,10.0,9.7,10.8],  a:[18.1,19.0,19.0,20.2,19.4,21.9],  y:[45.4,44.3,51.3,51.3,47.2,58.9] },
+      prep: { m:[2.3,3.1,2.6,2.7,3.2,2.8],     a:[11.1,11.5,10.3,9.7,11.9,10.9],   y:[31.7,33.8,29.1,31.9,33.0,32.0] },
+      rem:  { m:[2.3,2.3,2.2,2.0,2.1,2.2],     a:[9.4,9.4,8.5,8.4,8.6,7.8],        y:[25.1,26.1,23.4,22.6,24.0,21.6] },
+      com:  { m:[4.0,4.1,4.5,4.0,4.5,3.4],     a:[13.5,12.6,12.8,12.5,12.9,11.7],  y:[40.7,36.7,34.9,34.7,37.4,35.8] },
+      rest: { m:[2.4,2.6,1.6,4.2,2.7,2.7],     a:[13.8,14.4,13.6,15.2,12.3,10.1],  y:[37.8,42.2,44.0,34.8,37.7,30.5] },
+      rec:  { m:[1.5,0.1,1.9,1.4,0.8,1.1],     a:[7.2,9.3,8.5,9.2,7.7,6.8],        y:[28.4,30.3,25.3,26.3,28.0,21.9] },
+      edu:  { m:[5.5,3.9,1.4,1.6,3.8,2.5],     a:[19.0,17.5,26.9,22.6,17.2,17.2],  y:[39.4,39.3,41.6,56.3,41.3,46.2] },
+      ropa: { m:[4.4,2.1,2.1,2.4,3.1,1.7],     a:[6.9,5.0,6.2,4.5,5.1,5.6],        y:[13.3,11.2,15.8,13.9,12.9,14.6] },
+      hogar:{ m:[3.1,2.9,1.7,2.2,2.5,3.2],     a:[9.3,8.9,7.0,8.3,8.3,7.6],        y:[25.5,22.6,16.3,21.6,23.6,20.7] },
+      cuid: { m:[2.9,1.9,2.2,1.7,3.2,2.3],     a:[11.5,9.8,9.4,8.2,11.9,8.9],      y:[34.6,30.3,26.3,25.5,31.9,28.1] },
+      alc:  { m:[2.1,1.5,1.8,1.8,2.3,2.3],     a:[5.9,6.2,8.0,6.4,6.9,7.7],        y:[23.7,23.5,22.6,23.8,24.5,26.6] }
+    }
+  },
+  { year:2026, month:3,
+    general:{ m:[3.4,3.3,4.1,4.0,3.2,2.5], a:[9.1,9.5,11.5,10.7,9.9,8.6], y:[32.6,32.4,33.4,32.5,33.5,32.1] },
+    data:{
+      alim: { m:[2.9,3.5,4.5,4.4,4.0,3.2],     a:[11.3,11.9,14.4,13.2,12.8,9.3],   y:[32.4,32.5,37.3,34.6,36.0,27.8] },
+      alq:  { m:[3.1,3.7,3.4,2.7,3.4,3.2],     a:[6.9,10.7,13.7,14.6,10.7,13.9],   y:[45.4,64.4,77.9,82.0,60.3,87.5] },
+      ener: { m:[4.7,3.1,14.1,3.4,3.7,2.0],    a:[19.7,18.6,34.6,18.0,22.8,22.9],  y:[45.6,44.1,55.1,41.5,48.0,59.5] },
+      tpub: { m:[8.6,4.0,0.2,6.7,3.5,1.6],     a:[14.3,10.8,12.1,24.9,17.3,12.9],  y:[46.7,42.8,21.9,46.5,55.1,36.8] },
+      auto: { m:[5.9,5.7,5.8,7.1,6.1,6.7],     a:[8.6,9.3,7.6,9.3,8.9,10.1],       y:[35.5,35.0,38.4,40.8,35.9,46.4] },
+      prep: { m:[2.9,2.6,2.6,2.2,3.0,2.7],     a:[8.5,8.2,7.5,6.8,8.4,7.8],        y:[31.7,32.6,28.5,30.1,31.9,30.6] },
+      rem:  { m:[2.8,2.1,1.9,1.9,2.0,1.7],     a:[7.0,6.9,6.2,6.3,6.3,5.5],        y:[25.3,25.6,23.0,22.4,23.5,21.4] },
+      com:  { m:[3.0,2.9,2.8,3.0,2.8,2.7],     a:[9.2,8.1,8.0,8.2,8.0,8.0],        y:[38.3,35.3,33.1,35.5,35.3,35.6] },
+      rest: { m:[3.3,3.8,4.9,3.5,2.9,1.9],     a:[11.1,11.5,11.9,10.6,9.4,7.2],    y:[40.1,44.1,49.4,34.3,39.3,33.1] },
+      rec:  { m:[3.2,4.4,1.2,4.8,3.1,1.9],     a:[5.7,9.2,6.5,7.7,6.9,5.6],        y:[29.8,38.6,26.8,30.1,29.7,22.2] },
+      edu:  { m:[10.7,12.1,22.7,18.1,9.2,10.0],a:[12.8,13.1,25.2,20.6,12.9,14.3],  y:[34.5,38.5,45.5,56.3,42.4,46.6] },
+      ropa: { m:[4.2,2.4,2.5,1.5,1.9,1.2],     a:[2.4,2.9,4.0,2.0,1.9,3.9],        y:[13.6,12.0,16.8,15.5,13.5,16.2] },
+      hogar:{ m:[1.3,1.5,0.9,1.2,1.3,0.1],     a:[6.0,5.8,5.2,6.1,5.6,4.2],        y:[23.1,20.0,15.0,19.8,21.4,18.5] },
+      cuid: { m:[1.8,1.6,2.0,1.9,1.4,1.4],     a:[8.4,7.7,7.1,6.4,8.4,6.4],        y:[34.2,30.8,26.8,26.5,33.0,27.8] },
+      alc:  { m:[2.1,2.2,2.2,2.4,2.1,1.9],     a:[3.8,4.6,6.1,4.5,4.5,5.2],        y:[24.9,24.9,23.4,24.5,24.9,27.5] }
+    }
+  },
+  { year:2026, month:2,
+    general:{ m:[2.6,3.0,3.1,3.5,3.4,3.0], a:[5.5,6.0,7.1,6.5,6.5,5.9], y:[33.2,32.9,32.1,33.0,33.9,33.1] },
+    data:{
+      alim: { m:[3.0,3.4,4.5,4.1,4.3,2.5],     a:[8.2,8.1,9.5,8.4,8.5,6.0],        y:[36.7,35.4,38.9,36.7,38.3,27.6] },
+      alq:  { m:[2.4,2.4,2.9,4.3,4.1,2.6],     a:[3.7,6.7,9.9,11.6,7.0,10.4],      y:[48.9,65.4,81.4,93.6,67.7,100.0] },
+      ener: { m:[12.1,11.7,4.4,11.7,16.7,16.0],a:[14.4,15.0,18.0,14.1,18.5,20.6],  y:[40.9,41.5,36.4,39.1,44.8,62.3] },
+      tpub: { m:[4.3,2.3,6.4,8.8,-0.4,0.7],    a:[5.2,6.5,11.9,17.1,13.3,11.1],    y:[38.0,41.3,21.4,39.9,53.6,33.3] },
+      auto: { m:[1.6,1.9,1.1,1.9,1.5,1.3],     a:[2.5,3.4,1.7,2.0,2.6,3.1],        y:[30.9,29.7,33.2,33.9,29.1,40.6] },
+      prep: { m:[2.9,2.8,2.3,2.6,2.7,2.7],     a:[5.5,5.4,4.8,4.5,5.3,4.9],        y:[30.7,32.3,27.4,31.7,30.4,30.8] },
+      rem:  { m:[2.2,2.3,2.2,1.9,2.1,1.9],     a:[4.1,4.8,4.2,4.2,4.3,3.7],        y:[23.7,24.4,22.0,21.5,22.4,21.3] },
+      com:  { m:[2.1,1.6,1.7,1.8,1.5,1.4],     a:[6.0,5.1,5.1,5.1,5.1,5.1],        y:[38.4,34.3,32.0,33.5,33.9,35.8] },
+      rest: { m:[2.6,3.5,2.2,3.7,2.9,2.4],     a:[7.6,7.5,6.6,6.9,6.3,5.2],        y:[40.8,44.1,47.3,37.3,38.3,37.4] },
+      rec:  { m:[1.3,4.3,3.4,0.3,1.1,1.2],     a:[2.4,4.6,5.2,2.8,3.7,3.7],        y:[25.5,33.0,26.6,25.3,27.2,22.2] },
+      edu:  { m:[1.2,0.3,1.4,1.4,2.5,4.0],     a:[1.9,0.9,2.0,2.1,3.4,3.9],        y:[40.9,56.4,47.6,74.5,63.3,74.1] },
+      ropa: { m:[-0.3,0.0,0.3,0.4,0.2,1.4],    a:[-1.8,0.4,1.5,0.5,0.0,2.7],       y:[15.1,13.8,15.0,17.2,16.8,19.3] },
+      hogar:{ m:[3.1,2.0,2.7,2.6,2.0,2.0],     a:[4.6,4.2,4.3,4.7,4.2,4.1],        y:[23.2,20.3,14.6,20.3,21.3,20.6] },
+      cuid: { m:[3.5,3.3,2.4,2.7,3.1,2.5],     a:[6.5,6.0,5.0,4.5,6.9,5.0],        y:[37.5,31.6,27.9,26.7,34.4,28.8] },
+      alc:  { m:[0.3,0.8,2.0,0.4,0.9,1.1],     a:[1.6,2.4,3.8,2.0,2.4,3.3],        y:[23.6,23.1,20.4,22.1,23.3,26.4] }
+    }
+  },
+  { year:2026, month:1,
+    general:{ m:[2.8,2.9,3.8,2.8,3.0,2.9], a:[2.8,2.9,3.8,2.8,3.0,2.9], y:[32.7,32.2,30.5,31.8,33.0,33.4] },
+    data:{
+      alim: { m:[5.1,4.5,4.8,4.1,4.0,3.4],     a:[5.1,4.5,4.8,4.1,4.0,3.4],        y:[37.0,35.0,36.5,36.0,37.9,30.0] },
+      alq:  { m:[1.3,4.2,6.8,7.0,2.9,7.6],     a:[1.3,4.2,6.8,7.0,2.9,7.6],        y:[52.6,75.7,85.7,96.0,78.2,111.7] },
+      ener: { m:[2.0,3.0,13.0,2.2,1.5,3.9],    a:[2.0,3.0,13.0,2.2,1.5,3.9],       y:[29.2,30.1,34.3,27.9,28.1,42.7] },
+      tpub: { m:[0.9,4.1,5.1,7.6,13.8,10.4],   a:[0.9,4.1,5.1,7.6,13.8,10.4],      y:[32.2,41.7,13.7,34.2,55.8,33.6] },
+      auto: { m:[0.9,1.5,0.6,0.2,1.1,1.8],     a:[0.9,1.5,0.6,0.2,1.1,1.8],        y:[31.7,29.9,35.0,34.2,29.2,41.6] },
+      prep: { m:[2.5,2.5,2.4,1.9,2.5,2.2],     a:[2.5,2.5,2.4,1.9,2.5,2.2],        y:[30.4,31.7,30.2,35.6,30.6,30.8] },
+      rem:  { m:[1.9,2.4,1.9,2.3,2.2,1.8],     a:[1.9,2.4,1.9,2.3,2.2,1.8],        y:[22.4,23.2,20.7,20.9,21.5,20.9] },
+      com:  { m:[3.9,3.4,3.4,3.3,3.5,3.7],     a:[3.9,3.4,3.4,3.3,3.5,3.7],        y:[39.0,34.6,32.7,34.3,35.0,38.0] },
+      rest: { m:[4.8,3.8,4.4,3.0,3.3,2.8],     a:[4.8,3.8,4.4,3.0,3.3,2.8],        y:[39.7,42.7,43.3,36.7,38.7,40.3] },
+      rec:  { m:[1.0,0.2,1.7,2.5,2.6,2.4],     a:[1.0,0.2,1.7,2.5,2.6,2.4],        y:[27.1,32.9,24.5,26.4,27.4,22.6] },
+      edu:  { m:[0.7,0.6,0.6,0.7,0.9,-0.1],    a:[0.7,0.6,0.6,0.7,0.9,-0.1],       y:[41.4,58.8,62.1,76.1,61.0,82.5] },
+      ropa: { m:[-1.5,0.4,1.2,0.0,-0.1,1.3],   a:[-1.5,0.4,1.2,0.0,-0.1,1.3],      y:[16.0,14.3,14.5,17.5,15.7,18.0] },
+      hogar:{ m:[1.5,2.2,1.5,2.1,2.2,2.0],     a:[1.5,2.2,1.5,2.1,2.2,2.0],        y:[21.0,18.6,12.7,18.4,20.3,20.1] },
+      cuid: { m:[2.9,2.6,2.6,1.7,3.6,2.5],     a:[2.9,2.6,2.6,1.7,3.6,2.5],        y:[37.0,30.8,28.1,26.6,34.3,29.8] },
+      alc:  { m:[1.3,1.6,1.7,1.6,1.5,2.2],     a:[1.3,1.6,1.7,1.6,1.5,2.2],        y:[24.3,24.3,18.8,23.6,24.0,27.6] }
+    }
+  }
+];
+
+/* Rubros (el orden define el orden de la calculadora) */
 const CATS = [
-  {id:"alim", name:"Supermercado y almacén", hint:"Comida y bebidas para casa", c:"#C9892B",
-   m:[1.4,1.7,2.2,2.0,1.9,2.2], a:[21.9,22.1,26.0,23.4,20.8,19.5], y:[34.3,34.9,41.8,37.3,34.8,30.0]},
-  {id:"alq", name:"Alquiler y expensas", hint:"Si tenés casa propia, solo expensas", c:"#B5443C",
-   m:[2.6,3.2,4.9,2.6,3.0,3.2], a:[23.4,32.2,41.0,35.7,30.2,45.1], y:[42.0,55.7,72.1,58.3,50.5,67.8]},
-  {id:"ener", name:"Luz, gas y garrafa", hint:"Facturas de servicios del hogar", c:"#D46A2E",
-   m:[2.5,4.3,4.7,2.1,1.6,0.7], a:[37.9,32.0,74.6,38.5,33.0,26.8], y:[55.4,52.3,87.0,52.0,60.2,52.5]},
-  {id:"tpub", name:"Transporte público", hint:"SUBE: colectivo, subte, tren", c:"#2F5D8A",
-   m:[2.9,2.2,0.0,1.8,0.4,5.0], a:[34.5,34.2,18.7,42.3,36.7,25.9], y:[52.1,53.5,25.6,54.4,52.8,42.0]},
-  {id:"auto", name:"Auto o moto", hint:"Nafta, service, estacionamiento", c:"#4B7BA8",
-   m:[1.2,0.8,0.3,1.6,1.2,1.0], a:[24.9,24.0,23.6,26.6,26.8,27.4], y:[43.4,41.8,47.0,48.5,49.0,52.1]},
-  {id:"prep", name:"Prepaga u obra social", hint:"Cuota mensual", c:"#6A4C93",
-   m:[2.1,2.1,4.1,2.1,2.1,2.0], a:[23.1,22.8,26.0,20.6,24.0,21.5], y:[33.7,34.5,37.0,29.6,34.6,32.1]},
-  {id:"rem", name:"Farmacia y remedios", hint:"Medicamentos y artículos de salud", c:"#8B6DB8",
-   m:[2.0,2.5,2.7,2.4,2.6,2.0], a:[20.8,20.7,19.9,19.9,19.9,18.0], y:[30.3,30.8,29.0,28.8,29.2,26.2]},
-  {id:"com", name:"Celular e internet", hint:"Abonos y recargas", c:"#3E8E7E",
-   m:[2.4,2.2,1.8,2.2,2.3,2.2], a:[24.1,23.3,22.0,23.1,21.9,21.5], y:[38.2,35.9,34.0,36.3,35.3,34.5]},
-  {id:"rest", name:"Comer afuera y delivery", hint:"Bares, restaurantes, viandas", c:"#A8572F",
-   m:[2.0,1.4,3.1,2.7,1.0,2.2], a:[23.7,23.1,24.7,24.5,19.0,21.0], y:[34.5,36.6,37.4,31.9,27.5,30.9]},
-  {id:"rec", name:"Salidas y recreación", hint:"Cine, recitales, libros, viajes", c:"#5C9E5A",
-   m:[0.3,-0.7,0.3,-0.2,0.0,1.4], a:[21.9,22.3,19.2,20.9,19.7,17.9], y:[33.2,31.5,28.8,28.5,28.0,25.1]},
-  {id:"edu", name:"Educación", hint:"Cuotas, cursos, idiomas", c:"#7A8B3C",
-   m:[2.5,2.4,0.9,2.3,4.3,3.4], a:[31.5,26.0,42.4,32.8,29.0,29.9], y:[41.8,35.8,43.4,44.5,38.3,38.9]},
-  {id:"ropa", name:"Ropa y calzado", hint:"", c:"#9C6B8E",
-   m:[-1.1,-0.3,-1.8,-0.2,1.7,-0.2], a:[2.3,6.2,6.5,5.0,8.1,9.3], y:[10.0,11.3,12.2,11.8,15.7,13.1]},
-  {id:"hogar", name:"Casa y limpieza", hint:"Artículos de limpieza, muebles, arreglos", c:"#6E7F8F",
-   m:[1.5,1.6,1.4,1.4,0.4,1.4], a:[16.2,16.8,13.4,16.2,14.7,13.7], y:[25.8,24.1,18.5,24.0,22.4,21.4]},
-  {id:"cuid", name:"Cuidado personal y varios", hint:"Peluquería, higiene, otros", c:"#B08A5A",
-   m:[2.6,2.6,1.0,2.3,2.3,1.9], a:[22.1,19.9,17.9,18.2,20.9,17.7], y:[35.4,31.4,27.0,29.1,32.8,29.7]},
-  {id:"alc", name:"Alcohol y cigarrillos", hint:"", c:"#7D5A4F",
-   m:[2.2,2.0,1.4,2.4,1.9,2.2], a:[13.4,13.2,13.9,13.2,13.5,14.8], y:[23.1,21.9,22.2,22.6,22.6,24.4]}
+  {id:"alim", name:"Supermercado y almacén", hint:"Comida y bebidas para casa", c:"#C9892B"},
+  {id:"alq",  name:"Alquiler y expensas", hint:"Si tenés casa propia, solo expensas", c:"#B5443C"},
+  {id:"ener", name:"Luz, gas y garrafa", hint:"Facturas de servicios del hogar", c:"#D46A2E"},
+  {id:"tpub", name:"Transporte público", hint:"SUBE: colectivo, subte, tren", c:"#2F5D8A"},
+  {id:"auto", name:"Auto o moto", hint:"Nafta, service, estacionamiento", c:"#4B7BA8"},
+  {id:"prep", name:"Prepaga u obra social", hint:"Cuota mensual", c:"#6A4C93"},
+  {id:"rem",  name:"Farmacia y remedios", hint:"Medicamentos y artículos de salud", c:"#8B6DB8"},
+  {id:"com",  name:"Celular e internet", hint:"Abonos y recargas", c:"#3E8E7E"},
+  {id:"rest", name:"Comer afuera y delivery", hint:"Bares, restaurantes, viandas", c:"#A8572F"},
+  {id:"rec",  name:"Salidas y recreación", hint:"Cine, recitales, libros, viajes", c:"#5C9E5A"},
+  {id:"edu",  name:"Educación", hint:"Cuotas, cursos, idiomas", c:"#7A8B3C"},
+  {id:"ropa", name:"Ropa y calzado", hint:"", c:"#9C6B8E"},
+  {id:"hogar",name:"Casa y limpieza", hint:"Artículos de limpieza, muebles, arreglos", c:"#6E7F8F"},
+  {id:"cuid", name:"Cuidado personal y varios", hint:"Peluquería, higiene, otros", c:"#B08A5A"},
+  {id:"alc",  name:"Alcohol y cigarrillos", hint:"", c:"#7D5A4F"}
 ];
 const PRESETS = {
-  estudiante:{alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000},
-  jubilada:{alim:380000,alq:60000,ener:70000,tpub:15000,auto:0,prep:0,rem:90000,com:25000,rest:20000,rec:20000,edu:0,ropa:30000,hogar:40000,cuid:30000,alc:10000},
-  familia:{alim:900000,alq:0,ener:110000,tpub:20000,auto:250000,prep:350000,rem:50000,com:60000,rest:150000,rec:120000,edu:300000,ropa:150000,hogar:90000,cuid:70000,alc:40000}
+  estudiante:{icon:"edu", label:"Estudiante que alquila", desc:"Alquila un monoambiente, viaja en colectivo y come afuera seguido.",
+    v:{alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000}},
+  jubilada:{icon:"alq", label:"Jubilada con casa propia", desc:"Paga expensas pero no alquiler, gasta mucho en comida y remedios.",
+    v:{alim:380000,alq:60000,ener:70000,tpub:15000,auto:0,prep:0,rem:90000,com:25000,rest:20000,rec:20000,edu:0,ropa:30000,hogar:40000,cuid:30000,alc:10000}},
+  familia:{icon:"auto", label:"Familia con auto", desc:"Casa propia, auto, prepaga y colegio privado para los chicos.",
+    v:{alim:900000,alq:0,ener:110000,tpub:20000,auto:250000,prep:350000,rem:50000,com:60000,rest:150000,rec:120000,edu:300000,ropa:150000,hogar:90000,cuid:70000,alc:40000}}
 };
-const PERIOD_TXT = {m:"Suba de precios de agosto de 2026 respecto de julio", a:"Suba acumulada entre diciembre de 2025 y agosto de 2026", y:"Suba entre agosto de 2025 y agosto de 2026"};
-const REG_TXT = ["GBA","la región Pampeana","el Noreste","el Noroeste","Cuyo","la Patagonia"];
 
+/* ===================== íconos (trazos en una grilla de 24x24) ===================== */
+const ICONS = {
+  alim:'<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.2a1.5 1.5 0 0 0 1.5 1.1h8.6a1.5 1.5 0 0 0 1.4-1.1L21 7H6.2"/>',
+  alq:'<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>',
+  ener:'<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
+  tpub:'<rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 10h16"/><path d="M8 13.5h.01M16 13.5h.01"/><path d="M7 17v3M17 17v3"/>',
+  auto:'<path d="M3 16v-3l2.2-5.2A2 2 0 0 1 7 6.5h10a2 2 0 0 1 1.8 1.3L21 13v3H3z"/><path d="M3 13h18"/><circle cx="7.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/>',
+  prep:'<path d="M12 20.5s-7.3-4.4-9-9.1C1.8 8 4 4.5 7.4 4.5c2 0 3.6 1.1 4.6 2.6 1-1.5 2.6-2.6 4.6-2.6 3.4 0 5.6 3.5 4.4 6.9-1.7 4.7-9 9.1-9 9.1z"/><path d="M12 9.5v5M9.5 12h5"/>',
+  rem:'<rect x="2.5" y="8.5" width="19" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="m9.5 9.5 5 5"/>',
+  com:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18h2"/>',
+  rest:'<path d="M7 3v18M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 21V3c-2 1.5-3 4-3 7v3h3"/>',
+  rec:'<path d="M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/><path d="M14 6v2M14 11v2M14 16v2"/>',
+  edu:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/><path d="M22 9v6"/>',
+  ropa:'<path d="M8 3 3 6l2 4 2-1v12h10V9l2 1 2-4-5-3a4 4 0 0 1-8 0z"/>',
+  hogar:'<path d="M4 11V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/><path d="M2 13a2 2 0 0 1 4 0v2h12v-2a2 2 0 0 1 4 0v5H2z"/><path d="M5 18v2M19 18v2"/>',
+  cuid:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20M8.1 15.9 20 4"/>',
+  alc:'<path d="M7 3h10l-.5 6a4.5 4.5 0 0 1-9 0z"/><path d="M12 13.5V21M8 21h8"/>',
+  calc:'<rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 6.5h8v3H8z"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 17h.01M12 17h.01M15.5 17h.01"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  receipt:'<path d="M5 3h14v18l-2.3-1.5L14.3 21 12 19.5 9.7 21l-2.4-1.5L5 21z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  wallet:'<path d="M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M16.5 14h.01"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  trend:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  people:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a5 5 0 0 1 6 4.8"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+  share:'<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/>',
+  chev:'<path d="m6 9 6 6 6-6"/>',
+  book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/><path d="M8 7h8M8 10.5h6"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'
+};
+const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]||""}</svg>`;
+const catIcon = (id,cls="") => { const c=CATS.find(x=>x.id===id); return `<span class="catic ${cls}" style="--c:${c.c}" aria-hidden="true">${icon(id)}</span>`; };
+document.querySelectorAll("[data-icon]").forEach(el=>{ el.innerHTML=icon(el.dataset.icon); el.setAttribute("aria-hidden","true"); });
+
+/* ===================== modo día / noche ===================== */
+const themeBtn = document.getElementById("themeBtn");
+const darkMQ = matchMedia("(prefers-color-scheme: dark)");
+const currentTheme = () => document.documentElement.dataset.theme || (darkMQ.matches ? "dark" : "light");
+function paintThemeBtn(){
+  const dark = currentTheme()==="dark";
+  themeBtn.innerHTML = icon(dark?"sun":"moon") + `<span>${dark?"Modo día":"Modo noche"}</span>`;
+  themeBtn.setAttribute("aria-label", dark ? "Cambiar a modo día" : "Cambiar a modo noche");
+}
+themeBtn.addEventListener("click",()=>{
+  const next = currentTheme()==="dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try{ localStorage.setItem("tu-inflacion-tema", next); }catch(e){}
+  paintThemeBtn();
+});
+darkMQ.addEventListener("change", paintThemeBtn);
+paintThemeBtn();
+
+/* ===================== utilidades ===================== */
+const MES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+const monthName = M => cap(MES[M.month-1]) + " " + M.year;
+const REG_IN = ["en GBA","en la región Pampeana","en el Noreste","en el Noroeste","en Cuyo","en la Patagonia"];
+const REG_SHORT = ["GBA","Pampeana","Noreste","Noroeste","Cuyo","Patagonia"];
 const $ = s => document.querySelector(s);
 const pct = v => v.toLocaleString("es-AR",{minimumFractionDigits:1,maximumFractionDigits:1}) + "%";
-const money = v => "$ " + Math.round(v).toLocaleString("es-AR");
+const signed = v => (v>0?"+":"") + pct(v);
+const money = v => (v<0?"−":"") + "$ " + Math.round(Math.abs(v)).toLocaleString("es-AR");
 const parse = s => Number(String(s).replace(/\D/g,"")) || 0;
+const fmtIn = v => v ? v.toLocaleString("es-AR") : "";
 
+function periodText(M,p){
+  if(p==="m") return `Suba de precios de ${MES[M.month-1]} de ${M.year} respecto del mes anterior`;
+  if(p==="a") return `Suba acumulada entre diciembre de ${M.year-1} y ${MES[M.month-1]} de ${M.year}`;
+  return `Suba entre ${MES[M.month-1]} de ${M.year-1} y ${MES[M.month-1]} de ${M.year}`;
+}
+/* Índice de precios encadenado: con las variaciones mensual (m), acumulada (a) e
+   interanual (y) de cada informe se arma un nivel de precios por mes, para poder
+   comparar cualquier mes que esos datos alcancen contra el último publicado.
+   Los meses se numeran como año*12 + (mes-1). */
+const mnum = (y,m) => y*12 + (m-1);
+const mnumName = k => cap(MES[k%12]) + " " + Math.floor(k/12);
+function priceLevels(get){ // get(M,p) -> variación en %; devuelve Map mes -> nivel
+  const L = new Map([[mnum(MONTHS[0].year-1,12), 1]]);
+  // primero la acumulada contra diciembre (la más directa), así el redondeo no se arrastra
+  MONTHS.forEach(M=>{ const b=mnum(M.year-1,12); if(L.has(b)) L.set(mnum(M.year,M.month), L.get(b)*(1+get(M,"a")/100)); });
+  let changed = true;
+  while(changed){
+    changed = false;
+    MONTHS.forEach(M=>{
+      const k = mnum(M.year,M.month);
+      [[mnum(M.year-1,12),"a"],[k-1,"m"],[k-12,"y"]].forEach(([b,p])=>{
+        const f = 1 + get(M,p)/100;
+        if(L.has(b) && !L.has(k)){ L.set(k, L.get(b)*f); changed = true; }
+        else if(L.has(k) && !L.has(b)){ L.set(b, L.get(k)/f); changed = true; }
+      });
+    });
+  }
+  return L;
+}
+function regionLevels(r){
+  const lv = {general: priceLevels((M,p)=>M.general[p][r])};
+  CATS.forEach(c=> lv[c.id] = priceLevels((M,p)=>M.data[c.id][p][r]));
+  return lv;
+}
+function inflationBetween(basket, lv, from, to){
+  const total = CATS.reduce((s,c)=>s+(basket[c.id]||0),0);
+  if(!total) return null;
+  return CATS.reduce((s,c)=> s + (basket[c.id]||0)/total * (lv[c.id].get(to)/lv[c.id].get(from)-1)*100, 0);
+}
+function incomeMonths(lv){ // meses para comparar el ingreso, del más nuevo al más viejo
+  const latest = mnum(MONTHS[0].year, MONTHS[0].month);
+  const today = new Date(), current = mnum(today.getFullYear(), today.getMonth()+1);
+  const ok = [...lv.general.keys()].filter(k=> k<latest && Object.values(lv).every(L=>L.has(k))).sort((a,b)=>b-a);
+  const pending = [];
+  for(let k=Math.max(current,latest); k>=latest; k--) pending.push(k);
+  return {latest, ok, pending};
+}
+function inflation(basket, M, p, r){
+  const total = CATS.reduce((s,c)=>s+(basket[c.id]||0),0);
+  if(!total) return null;
+  const rows = CATS.filter(c=>basket[c.id]>0).map(c=>{
+    const share = basket[c.id]/total, v = M.data[c.id][p][r];
+    return {id:c.id, name:c.name, c:c.c, share, v, aporte:share*v};
+  });
+  return {total, rows, value: rows.reduce((s,x)=>s+x.aporte,0)};
+}
+
+/* ===================== GLOSARIO =====================
+   Cada término: t = título, g = grupo, d = definición, ex = ejemplo (función, para
+   poder usar los datos cargados), rel = términos relacionados.
+   Para marcar una palabra en la página: T("clave","texto") o, en el HTML,
+   <button type="button" class="term" data-term="clave">texto</button> */
+function T(k,txt){ return `<button type="button" class="term" data-term="${k}">${txt}</button>`; }
+const G_GROUPS = {base:"Conceptos básicos", medir:"Cómo se mide", bolsillo:"Tu bolsillo"};
+function gd(){ const M=MONTHS[0], r=state.region; return {M, reg:REG_SHORT[r], mes:`${MES[M.month-1]} ${M.year}`, m:M.general.m[r], a:M.general.a[r], y:M.general.y[r]}; }
+const GLOSS = {
+  inflacion:{t:"Inflación", g:"base",
+    d:"Aumento generalizado y sostenido de los precios. No alcanza con que suba una cosa: es inflación cuando suben la mayoría de los precios, mes tras mes. Visto al revés, es la pérdida de valor de la moneda.",
+    ex:()=>{const x=gd(); return `En ${x.mes} la inflación de ${x.reg} fue ${pct(x.m)}: lo que costaba $ 10.000 el mes anterior pasó a costar, en promedio, ${money(10000*(1+x.m/100))}.`;},
+    rel:["ipc","mensual","nucleo"]},
+  ipc:{t:"IPC (Índice de Precios al Consumidor)", g:"base",
+    d:"El índice con el que el INDEC mide la inflación oficial. Sigue todos los meses los precios de una canasta fija de bienes y servicios que consumen los hogares, y resume en un solo número cuánto cambió su costo.",
+    ex:()=>{const x=gd(); return `Que el IPC de ${x.reg} haya subido ${pct(x.m)} en ${x.mes} quiere decir que esa canasta costó ${pct(x.m)} más que el mes anterior. Tu gasto puede haber subido más o menos: para eso está la calculadora.`;},
+    rel:["canasta","engho","indec"]},
+  indec:{t:"INDEC", g:"base",
+    d:"Instituto Nacional de Estadística y Censos. Es el organismo público que produce las estadísticas oficiales del país: inflación, pobreza, desempleo, PBI y el censo, entre otras.",
+    ex:()=>"El IPC de un mes se publica a mediados del mes siguiente. Por eso, mientras transcurre un mes, todavía no hay dato oficial de su inflación.",
+    rel:["ipc","region"]},
+  canasta:{t:"Canasta", g:"base",
+    d:"El conjunto de bienes y servicios que se usa para medir precios, con la cantidad de cada uno: comida, alquiler, transporte, ropa, etc. La del IPC representa al hogar promedio; la tuya es la que cargás en la calculadora.",
+    ex:()=>"Un estudiante que alquila y una jubilada con casa propia tienen canastas muy distintas: por eso, con los mismos precios, sienten inflaciones diferentes.",
+    rel:["ponderacion","canasta_basica","engho"]},
+  canasta_basica:{t:"Canasta básica (CBA y CBT)", g:"base",
+    d:"La Canasta Básica Alimentaria (CBA) son los alimentos mínimos para cubrir las necesidades nutricionales; define la línea de indigencia. La Canasta Básica Total (CBT) suma bienes y servicios no alimentarios, como ropa, transporte y salud, y define la línea de pobreza.",
+    ex:()=>"Un hogar cuyos ingresos no alcanzan para comprar la CBT se considera pobre. Si no alcanzan ni para la CBA, se considera indigente.",
+    rel:["canasta","ingreso_neto"]},
+  nucleo:{t:"Inflación núcleo", g:"base",
+    d:"La inflación sin contar los precios regulados ni los estacionales. Sirve para ver la tendencia de fondo, sacando los saltos por tarifazos o por la temporada.",
+    ex:()=>"Si en un mes aumentan fuerte la luz y el gas, la inflación general sube, pero la núcleo puede quedarse quieta: la suba vino de una decisión de tarifas, no de todos los precios.",
+    rel:["regulados","estacionales","inflacion"]},
+  regulados:{t:"Precios regulados", g:"base",
+    d:"Precios que fija o controla el Estado, o que tienen un fuerte componente impositivo: por ejemplo, tarifas de luz, gas y agua, transporte público, combustibles, telefonía, prepagas, educación formal y cigarrillos.",
+    ex:()=>"Un aumento del boleto de colectivo es un cambio de precio regulado: se anuncia antes y ocurre de una sola vez.",
+    rel:["nucleo","estacionales"]},
+  estacionales:{t:"Precios estacionales", g:"base",
+    d:"Precios que cambian con las estaciones del año: frutas y verduras, ropa de temporada, turismo y alojamiento.",
+    ex:()=>"El tomate suele encarecerse en invierno, y los pasajes y hoteles en vacaciones, aunque el resto de la economía no cambie.",
+    rel:["nucleo","regulados"]},
+
+  mensual:{t:"Variación mensual", g:"medir",
+    d:"Cuánto cambió un precio o un índice respecto del mes anterior. Es la opción “En el mes” de la calculadora.",
+    ex:()=>{const x=gd(); return `En ${x.reg}, la variación mensual de ${x.mes} fue ${pct(x.m)}.`;},
+    rel:["acumulada","interanual"]},
+  acumulada:{t:"Variación acumulada", g:"medir",
+    d:"Cuánto subieron los precios desde diciembre del año anterior hasta el mes elegido. Es la opción “En el año” de la calculadora. Ojo: no es la suma de las mensuales, porque cada suba se aplica sobre precios que ya habían subido.",
+    ex:()=>{const x=gd(); return `Un mes de 2% y otro de 3% no dan 5% acumulado, sino (1,02 × 1,03) − 1 = 5,06%. En ${x.reg}, lo acumulado hasta ${x.mes} es ${pct(x.a)}.`;},
+    rel:["mensual","interanual","indice_encadenado"]},
+  interanual:{t:"Variación interanual", g:"medir",
+    d:"Cuánto cambiaron los precios respecto del mismo mes del año anterior: la inflación de los últimos 12 meses. Es la opción “En 12 meses” de la calculadora y el número que más se cita en los medios.",
+    ex:()=>{const x=gd(); return `La inflación interanual de ${x.reg} en ${x.mes} fue ${pct(x.y)}: lo que hace un año costaba $ 10.000, hoy cuesta en promedio ${money(10000*(1+x.y/100))}.`;},
+    rel:["mensual","acumulada"]},
+  ponderacion:{t:"Ponderación (peso)", g:"medir",
+    d:"La parte de tu gasto total que se lleva cada rubro. Define cuánto te afecta que ese rubro suba: un aumento en algo en lo que gastás mucho te pega más que el mismo aumento en algo que casi no comprás.",
+    ex:()=>"Si el alquiler es el 40% de tu gasto y sube 5%, te suma 2 puntos de inflación. Si la ropa es el 5% y sube 5%, te suma solo 0,25.",
+    rel:["promedio_ponderado","aporte","canasta"]},
+  promedio_ponderado:{t:"Promedio ponderado", g:"medir",
+    d:"Un promedio donde cada valor cuenta según su peso. Así se calcula el IPC y así se calcula tu inflación en esta página.",
+    ex:()=>"Si el 60% de tu gasto es comida y subió 2%, y el 40% es alquiler y subió 5%, tu inflación es 0,6 × 2% + 0,4 × 5% = 3,2%. El promedio simple daría 3,5%.",
+    rel:["ponderacion","aporte"]},
+  aporte:{t:"Aporte (incidencia)", g:"medir",
+    d:"Cuántos puntos de tu inflación explica cada rubro: su peso en tu gasto multiplicado por cuánto subió. La suma de todos los aportes da tu inflación.",
+    ex:()=>"Con el alquiler pesando 40% y subiendo 5%, su aporte es 0,4 × 5 = 2 puntos porcentuales.",
+    rel:["ponderacion","pp"]},
+  pp:{t:"Puntos porcentuales", g:"medir",
+    d:"La diferencia entre dos porcentajes. No es lo mismo que una variación en %: “1 punto más” y “1% más” son cosas distintas.",
+    ex:()=>"Si tu inflación fue 3% y la oficial 2%, tuviste 1 punto porcentual más. En términos relativos, tu inflación fue 50% mayor.",
+    rel:["aporte","mensual"]},
+  region:{t:"Regiones del IPC", g:"medir",
+    d:"El INDEC mide la inflación por separado en seis regiones: GBA (Ciudad de Buenos Aires y conurbano), Pampeana, Noreste, Noroeste, Cuyo y Patagonia. Cada una tiene sus propios precios y su propia canasta.",
+    ex:()=>"Una suba de tarifas de gas puede pesar mucho más en la Patagonia, donde la calefacción se usa más meses del año.",
+    rel:["ipc","division"]},
+  division:{t:"Divisiones (rubros)", g:"medir",
+    d:"Los grandes grupos en que el INDEC ordena la canasta del IPC: alimentos y bebidas, prendas de vestir, vivienda y servicios, salud, transporte, comunicación, recreación, educación, restaurantes, entre otros.",
+    ex:()=>"“Supermercado y almacén” de la calculadora usa la división Alimentos y bebidas no alcohólicas.",
+    rel:["apertura","canasta"]},
+  apertura:{t:"Aperturas", g:"medir",
+    d:"Subgrupos más finos que el INDEC publica dentro de cada división, como “Alquiler de la vivienda” o “Electricidad, gas y otros combustibles”. Permiten separar cosas que dentro de una división se mueven muy distinto.",
+    ex:()=>"Alquiler, luz y gas, prepaga, remedios, transporte público y auto usan aperturas en la calculadora, en lugar de la división completa.",
+    rel:["division"]},
+  engho:{t:"ENGHo", g:"medir",
+    d:"La Encuesta Nacional de Gastos de los Hogares. Releva en qué gastan los hogares y de ahí salen los pesos de cada rubro en el IPC. Por eso la canasta “promedio” refleja los hábitos del año en que se hizo la encuesta.",
+    ex:()=>"Si la encuesta es de hace muchos años, pueden pesar poco gastos que hoy son centrales, como internet o las plataformas de streaming.",
+    rel:["ipc","ponderacion","canasta"]},
+  indice_encadenado:{t:"Índice de precios (nivel)", g:"medir",
+    d:"Un número que sigue el nivel de precios a lo largo del tiempo, arrancando de una base (por ejemplo, 100). Con él se puede comparar cualquier par de meses dividiendo sus valores. Así comparamos tu sueldo contra el mes que elijas.",
+    ex:()=>"Diciembre = 100. Si en enero los precios suben 2%, enero = 102; si en febrero suben 3%, febrero = 105,06. Entre diciembre y febrero subieron 5,06%.",
+    rel:["acumulada","deflactar"]},
+  sustitucion:{t:"Efecto sustitución", g:"medir",
+    d:"Cuando algo sube mucho, la gente cambia a otra marca, otro producto u otro comercio. Un índice con canasta fija no lo registra, así que puede exagerar cuánto aumentó el costo de vida de quien se adapta.",
+    ex:()=>"Si la carne vacuna sube y pasás a comprar más pollo, tu gasto sube menos que el precio de la carne.",
+    rel:["canasta","ponderacion"]},
+
+  salario_real:{t:"Salario real (poder de compra)", g:"bolsillo",
+    d:"Cuánto podés comprar con tu sueldo, una vez descontada la inflación. Se calcula como (1 + suba del sueldo) ÷ (1 + inflación) − 1. Si da positivo, tu sueldo le ganó a los precios.",
+    ex:()=>"Si tu sueldo subió 30% y tu inflación fue 35%, tu salario real cayó: 1,30 ÷ 1,35 − 1 = −3,7%. No es −5%, como daría la resta.",
+    rel:["nominal","deflactar","ingreso_neto"]},
+  nominal:{t:"Nominal y real", g:"bolsillo",
+    d:"Un valor nominal está en pesos de cada momento, tal como figura en el recibo o el ticket. Un valor real está ajustado por inflación, para comparar poder de compra entre fechas.",
+    ex:()=>"Pasar de cobrar $ 1.000.000 a $ 1.200.000 es una suba nominal de 20%. Si los precios subieron 25%, en términos reales cobrás menos.",
+    rel:["salario_real","deflactar"]},
+  deflactar:{t:"Deflactar (actualizar por inflación)", g:"bolsillo",
+    d:"Llevar un monto de pesos de un momento a pesos de otro momento usando un índice de precios. Sirve para comparar sueldos, alquileres o ahorros de fechas distintas.",
+    ex:()=>{const x=gd(); return `Con la inflación acumulada de ${x.reg} (${pct(x.a)}), $ 100.000 de diciembre de ${x.M.year-1} equivalen a ${money(100000*(1+x.a/100))} de ${x.mes}.`;},
+    rel:["indice_encadenado","nominal"]},
+  ingreso_neto:{t:"Ingreso neto", g:"bolsillo",
+    d:"Lo que efectivamente cobrás, después de los descuentos: aportes jubilatorios, obra social y, si corresponde, impuesto a las ganancias. El bruto es el monto antes de esos descuentos.",
+    ex:()=>"En un recibo de sueldo en relación de dependencia, los descuentos de ley suelen rondar el 17% del bruto, así que un bruto de $ 1.000.000 da un neto cercano a $ 830.000.",
+    rel:["salario_real"]}
+};
+
+const normTxt = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const gEntry = k => { const e=GLOSS[k]; return `<p>${e.d}</p>${e.ex?`<p class="gex"><b>Ejemplo.</b> ${e.ex()}</p>`:""}${e.rel&&e.rel.length?`<div class="grel"><span>Relacionados:</span>${e.rel.map(x=>T(x,GLOSS[x].t)).join("")}</div>`:""}`; };
+
+let gFilter = "todos";
+const gOpen = new Set(); // términos desplegados (se mantienen al recalcular)
+function gItem(k,withCat){
+  const e=GLOSS[k];
+  return `<details class="gitem" id="g-${k}" data-k="${k}"${gOpen.has(k)?" open":""}>
+    <summary><span class="gname">${e.t}</span>${withCat?`<span class="gcat">${G_GROUPS[e.g]}</span>`:""}<span class="chev" aria-hidden="true">${icon("chev")}</span></summary>
+    <div class="gbody">${gEntry(k)}</div></details>`;
+}
+function renderGlossary(){
+  const box=$("#glist"); if(!box) return;
+  const q=normTxt($("#gSearch").value.trim());
+  const byName=(a,b)=>GLOSS[a].t.localeCompare(GLOSS[b].t,"es");
+  const keys=Object.keys(GLOSS).filter(k=>{
+    const e=GLOSS[k];
+    return (gFilter==="todos"||e.g===gFilter) && (!q || normTxt(e.t+" "+e.d).includes(q));
+  }).sort(byName);
+  if(!keys.length){ box.innerHTML=`<p class="empty">No encontramos ese término. Probá con otra palabra, como “sueldo” o “mensual”.</p>`; paintToggleAll([]); return; }
+  if(q){ // al buscar: lista plana, y si queda uno solo se abre
+    if(keys.length===1) gOpen.add(keys[0]);
+    box.innerHTML=`<p class="gcount">${keys.length} ${keys.length===1?"término":"términos"}</p><div class="panel gacc">${keys.map(k=>gItem(k,true)).join("")}</div>`;
+  } else {
+    box.innerHTML=Object.entries(G_GROUPS).filter(([g])=>gFilter==="todos"||g===gFilter).map(([g,label])=>
+      `<div class="ggroup"><h3>${label}</h3><div class="panel gacc">${keys.filter(k=>GLOSS[k].g===g).map(k=>gItem(k,false)).join("")}</div></div>`).join("");
+  }
+  paintToggleAll(keys);
+}
+function paintToggleAll(keys){
+  const b=$("#gToggleAll"); if(!b) return;
+  b.hidden=!keys.length;
+  b.textContent = keys.length && keys.every(k=>gOpen.has(k)) ? "Cerrar todos" : "Abrir todos";
+}
+function openGlossaryItem(k){
+  gOpen.add(k);
+  if(!document.getElementById("g-"+k)){ $("#gSearch").value=""; gFilter="todos"; paintGChips(); }
+  renderGlossary();
+  const el=document.getElementById("g-"+k); if(!el) return;
+  el.open=true; el.scrollIntoView({block:"start"});
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  el.querySelector("summary").focus({preventScroll:true});
+}
+$("#glist").addEventListener("toggle",e=>{
+  const d=e.target; if(!d.classList||!d.classList.contains("gitem")) return;
+  d.open ? gOpen.add(d.dataset.k) : gOpen.delete(d.dataset.k);
+  paintToggleAll([...document.querySelectorAll("#glist .gitem")].map(x=>x.dataset.k));
+},true);
+$("#gToggleAll").addEventListener("click",()=>{
+  const items=[...document.querySelectorAll("#glist .gitem")];
+  const openAll=!items.every(d=>d.open);
+  items.forEach(d=>{ d.open=openAll; });
+});
+
+/* ventanita que se abre al tocar un término subrayado */
+const gpop=document.createElement("div");
+gpop.className="gpop"; gpop.hidden=true; gpop.setAttribute("role","dialog");
+document.body.appendChild(gpop);
+let gAnchor=null;
+function showTerm(k){
+  gpop.innerHTML=`<button type="button" class="gclose" aria-label="Cerrar">×</button><h4>${GLOSS[k].t}</h4>${gEntry(k)}<a class="gmore" href="#g-${k}">Ver en el glosario</a>`;
+  gpop.setAttribute("aria-label",GLOSS[k].t);
+  gpop.hidden=false; placeTerm();
+}
+function placeTerm(){
+  if(gpop.hidden||!gAnchor) return;
+  if(!gAnchor.isConnected){ closeTerm(false); return; }
+  const r=gAnchor.getBoundingClientRect(), w=gpop.offsetWidth, h=gpop.offsetHeight;
+  let left=Math.min(Math.max(r.left,16), innerWidth-16-w);
+  let top=r.bottom+8;
+  if(top+h>innerHeight-12 && r.top-h-8>12) top=r.top-h-8;
+  gpop.style.left=(left+scrollX)+"px"; gpop.style.top=(top+scrollY)+"px";
+}
+function openTerm(btn){
+  const k=btn.dataset.term; if(!GLOSS[k]) return;
+  if(gAnchor===btn && !gpop.hidden){ closeTerm(); return; }
+  closeTerm(false);
+  gAnchor=btn; btn.setAttribute("aria-expanded","true");
+  showTerm(k);
+}
+function closeTerm(refocus=true){
+  if(gAnchor){ gAnchor.setAttribute("aria-expanded","false"); if(refocus&&gAnchor.isConnected) gAnchor.focus(); }
+  gpop.hidden=true; gAnchor=null;
+}
+document.addEventListener("click",e=>{
+  const t=e.target.closest(".term");
+  if(t && gpop.contains(t)){ showTerm(t.dataset.term); return; }
+  if(t && t.closest("#glist")){ openGlossaryItem(t.dataset.term); return; }
+  if(t){ openTerm(t); return; }
+  if(e.target.closest(".gclose")){ closeTerm(); return; }
+  if(e.target.closest(".gmore")){
+    e.preventDefault();
+    const k=e.target.closest(".gmore").getAttribute("href").slice(3);
+    closeTerm(false); openGlossaryItem(k);
+    return;
+  }
+  if(!gpop.hidden && !gpop.contains(e.target)) closeTerm(false);
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!gpop.hidden) closeTerm(); });
+addEventListener("resize",placeTerm);
+addEventListener("scroll",()=>{ if(!gpop.hidden&&gAnchor&&gAnchor.closest(".sticky")) placeTerm(); },{passive:true});
+
+function paintGChips(){ document.querySelectorAll("#gChips button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.g===gFilter))); }
+$("#gChips").innerHTML=[["todos","Todos"],...Object.entries(G_GROUPS)].map(([k,l])=>`<button type="button" data-g="${k}">${l}</button>`).join("");
+$("#gChips").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; gFilter=b.dataset.g; paintGChips(); renderGlossary(); });
+$("#gSearch").addEventListener("input",renderGlossary);
+paintGChips();
+
+/* ===================== estado ===================== */
 let spend = Object.fromEntries(CATS.map(c=>[c.id,0]));
-let state = {region:0, period:"m"};
-
-// cargar estado guardado
+let state = {mi:0, region:0, period:"m", incNow:0, incBase:null, incHist:{}};
 try{
   const saved = JSON.parse(localStorage.getItem("tu-inflacion") || "null");
   if(saved){ Object.assign(spend, saved.spend||{}); Object.assign(state, saved.state||{}); }
-  else { Object.assign(spend, PRESETS.estudiante); }
-}catch(e){ Object.assign(spend, PRESETS.estudiante); }
+  else Object.assign(spend, PRESETS.estudiante.v);
+}catch(e){ Object.assign(spend, PRESETS.estudiante.v); }
+state.mi = 0; // siempre abrir en el mes más reciente
+state.incHist = state.incHist || {};
+delete state.incPrev; // versión anterior: el ingreso previo dependía del período de la calculadora
 function save(){ try{ localStorage.setItem("tu-inflacion", JSON.stringify({spend,state})); }catch(e){} }
 
-// filas de gasto
+/* ===================== armado de controles ===================== */
+$("#lastMonth").textContent = monthName(MONTHS[0]).toLowerCase();
+MONTHS.forEach((M,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=monthName(M); $("#month").appendChild(o); });
+
 const rowsEl = $("#rows");
 CATS.forEach(c=>{
   const row = document.createElement("div");
   row.className = "row";
-  row.innerHTML = `<label for="in-${c.id}" class="name">${c.name}${c.hint?`<span class="hint">${c.hint}</span>`:""}</label>
+  row.innerHTML = `${catIcon(c.id)}<label for="in-${c.id}" class="name">${c.name}${c.hint?`<span class="hint">${c.hint}</span>`:""}</label>
     <div class="money"><span>$</span><input id="in-${c.id}" inputmode="numeric" autocomplete="off" placeholder="0"></div>`;
   rowsEl.appendChild(row);
   const inp = row.querySelector("input");
-  inp.addEventListener("input", ()=>{
-    spend[c.id] = parse(inp.value);
-    inp.value = spend[c.id] ? spend[c.id].toLocaleString("es-AR") : "";
-    update();
-  });
+  inp.addEventListener("input", ()=>{ spend[c.id]=parse(inp.value); inp.value=fmtIn(spend[c.id]); update(); });
 });
+$("#incNow").addEventListener("input",e=>{ state.incNow=parse(e.target.value); e.target.value=fmtIn(state.incNow); update(); });
+$("#incPrev").addEventListener("input",e=>{
+  const v=parse(e.target.value); e.target.value=fmtIn(v);
+  if(v) state.incHist[state.incBase]=v; else delete state.incHist[state.incBase];
+  update();
+});
+$("#incBase").addEventListener("change",e=>{ state.incBase=+e.target.value; $("#incPrev").value=fmtIn(state.incHist[state.incBase]||0); update(); });
 function fillInputs(){
-  CATS.forEach(c=>{ $("#in-"+c.id).value = spend[c.id] ? spend[c.id].toLocaleString("es-AR") : ""; });
-  $("#region").value = state.region; $("#period").value = state.period;
+  CATS.forEach(c=> $("#in-"+c.id).value = fmtIn(spend[c.id]));
+  $("#month").value=state.mi; $("#region").value=state.region; $("#period").value=state.period;
+  $("#incNow").value=fmtIn(state.incNow); $("#incPrev").value=fmtIn(state.incHist[state.incBase]||0);
 }
+document.querySelectorAll("[data-preset]").forEach(b=> b.insertAdjacentHTML("afterbegin", icon(PRESETS[b.dataset.preset]?PRESETS[b.dataset.preset].icon:"trash")));
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
-  const p = b.dataset.preset;
-  CATS.forEach(c=> spend[c.id] = p==="vaciar" ? 0 : (PRESETS[p][c.id]||0));
+  const p=b.dataset.preset;
+  CATS.forEach(c=> spend[c.id] = p==="vaciar" ? 0 : (PRESETS[p].v[c.id]||0));
   fillInputs(); update();
 }));
-$("#region").addEventListener("change", e=>{ state.region=+e.target.value; update(); });
-$("#period").addEventListener("change", e=>{ state.period=e.target.value; update(); });
+$("#month").addEventListener("change",e=>{state.mi=+e.target.value;update();});
+$("#region").addEventListener("change",e=>{state.region=+e.target.value;update();});
+$("#period").addEventListener("change",e=>{state.period=e.target.value;update();});
 
-function chart(rows, you, off){
-  const W=640, H=280, padL=38, padR=8, padT=14, padB=24;
-  const iw=W-padL-padR, ih=H-padT-padB;
-  const vals = rows.map(r=>r.v).concat([you, off, 0]);
-  let max = Math.max(...vals), min = Math.min(...vals);
-  max = max + (max-min)*0.08; min = Math.min(0, min);
-  const y = v => padT + (max - v)/(max - min)*ih;
-  let x = padL, bars = "";
-  rows.forEach(r=>{
-    const w = r.share*iw, top=y(Math.max(r.v,0)), h=Math.abs(y(r.v)-y(0));
-    bars += `<rect class="bar" x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${Math.max(w-1.5,0.5).toFixed(1)}" height="${Math.max(h,0.8).toFixed(1)}" fill="${r.c}"><title>${r.name}: ${pct(r.share*100)} de tu gasto, subió ${pct(r.v)}</title></rect>`;
-    x += w;
+/* ===================== gráficos ===================== */
+function niceStep(raw){ const p=Math.pow(10,Math.floor(Math.log10(raw))), n=raw/p; return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p; }
+function marimekko(rows, you, off){
+  const W=640,H=280,padL=38,padR=8,padT=14,padB=24, iw=W-padL-padR, ih=H-padT-padB;
+  const vals=rows.map(r=>r.v).concat([you,off,0]);
+  let max=Math.max(...vals), min=Math.min(...vals); max=max+(max-min)*0.08; min=Math.min(0,min);
+  const y=v=>padT+(max-v)/(max-min)*ih;
+  let x=padL, bars="";
+  [...rows].sort((a,b)=>b.v-a.v).forEach(r=>{
+    const w=r.share*iw, top=y(Math.max(r.v,0)), h=Math.abs(y(r.v)-y(0));
+    bars+=`<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${Math.max(w-1.5,.5).toFixed(1)}" height="${Math.max(h,.8).toFixed(1)}" fill="${r.c}"><title>${r.name}: ${pct(r.share*100)} de tu gasto, subió ${pct(r.v)}</title></rect>`;
+    x+=w;
   });
-  // eje
-  const step = niceStep((max-min)/4);
-  let ticks = "";
-  for(let t=Math.ceil(min/step)*step; t<=max; t+=step){
-    ticks += `<line x1="${padL}" x2="${W-padR}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${padL-6}" y="${y(t)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${Math.round(t*10)/10}%</text>`;
-  }
+  const step=niceStep((max-min)/4); let ticks="";
+  for(let t=Math.ceil(min/step)*step;t<=max;t+=step) ticks+=`<line x1="${padL}" x2="${W-padR}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${padL-6}" y="${y(t)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${Math.round(t*10)/10}%</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Barras de ancho variable: el ancho es el peso de cada rubro en tu gasto y la altura cuánto subió">
     ${ticks}${bars}
-    <line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)" stroke-width="1"/>
+    <line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>
     <line x1="${padL}" x2="${W-padR}" y1="${y(off)}" y2="${y(off)}" stroke="var(--indec)" stroke-width="2" stroke-dasharray="6 5"/>
     <line x1="${padL}" x2="${W-padR}" y1="${y(you)}" y2="${y(you)}" stroke="var(--you)" stroke-width="3"/>
     <text x="${padL}" y="${H-6}" font-size="11" fill="var(--muted)">0% de tu gasto</text>
-    <text x="${W-padR}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="end">100%</text>
-  </svg>`;
+    <text x="${W-padR}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="end">100%</text></svg>`;
 }
-function niceStep(raw){
-  const p = Math.pow(10, Math.floor(Math.log10(raw))), n = raw/p;
-  return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p;
+function monthlyChart(series,W,sel){ // series: [{label, short, you, off}] de más viejo a más nuevo
+  const H=230,padL=6,padR=6,padT=22,padB=28, iw=W-padL-padR, ih=H-padT-padB;
+  const vals=series.flatMap(s=>[s.you,s.off]).concat([0]);
+  let max=Math.max(...vals)*1.12, min=Math.min(0,Math.min(...vals));
+  const y=v=>padT+(max-v)/(max-min)*ih;
+  const gw=iw/series.length, bw=Math.min(40,gw*0.36);
+  const showVals = bw+3 >= 33;             // si no entran los números, se ven al tocar el mes
+  const lab = s => gw>=56 ? s.label : s.short;
+  let g="";
+  series.forEach((s,i)=>{
+    const cx=padL+gw*i+gw/2;
+    g+=`<g class="mm${i===sel?" sel":""}" data-i="${i}" tabindex="0" role="button" aria-label="${s.label}: tu inflación ${pct(s.you)}, INDEC ${pct(s.off)}">
+      <rect x="${cx-gw/2}" y="0" width="${gw}" height="${H}" fill="transparent"/>`;
+    [[s.you,"var(--you)",-bw-1.5],[s.off,"var(--indec)",1.5]].forEach(([v,col,dx])=>{
+      const top=y(Math.max(v,0)), h=Math.abs(y(v)-y(0));
+      g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"/>`;
+      if(showVals) g+=`<text x="${cx+dx+bw/2}" y="${v>=0?top-5:top+h+13}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`;
+    });
+    g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="12" fill="var(--muted)">${lab(s)}</text></g>`;
+  });
+  return `<svg class="mmchart" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Tu inflación mensual comparada con el INDEC">
+    <line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>${g}</svg>`;
 }
 
+/* ===================== render ===================== */
 function update(){
   save();
-  const r = state.region, p = state.period;
-  const total = CATS.reduce((s,c)=>s+spend[c.id],0);
-  $("#total").textContent = money(total);
-  $("#periodLabel").textContent = PERIOD_TXT[p] + ", en " + REG_TXT[r] + ".";
-  const off = GENERAL[p][r];
-  const out = $("#out");
-  if(!total){
-    out.innerHTML = `<p class="empty">Cargá al menos un gasto a la izquierda, o elegí uno de los ejemplos, para ver tu inflación.</p>`;
-    $("#peekYou").textContent="—"; $("#peekIndec").textContent=pct(off); return;
-  }
-  const rows = CATS.filter(c=>spend[c.id]>0).map(c=>{
-    const share = spend[c.id]/total, v = c[p][r];
-    return {name:c.name, c:c.c, share, v, aporte:share*v};
-  }).sort((a,b)=>b.v-a.v);
-  const you = rows.reduce((s,x)=>s+x.aporte,0);
-  const diff = you - off;
-  const top = [...rows].sort((a,b)=>b.aporte-a.aporte).slice(0,2);
-  let verdict;
-  if(Math.abs(diff) < 0.05*Math.max(Math.abs(off),1)) verdict = `Tu inflación es prácticamente igual a la oficial.`;
-  else if(diff>0) verdict = `Tus precios subieron <b>${pct(diff).replace("%"," puntos")}</b> más que el índice oficial.`;
-  else verdict = `Tus precios subieron <b>${pct(-diff).replace("%"," puntos")}</b> menos que el índice oficial.`;
-  verdict += ` Lo que más te empuja: ${top.map(t=>t.name.toLowerCase()).join(" y ")}, que juntos explican ${pct(top.reduce((s,t)=>s+t.aporte,0)/you*100)} de tu número.`;
+  const M=MONTHS[state.mi], r=state.region, p=state.period;
+  const off=M.general[p][r];
+  const res=inflation(spend,M,p,r);
+  $("#total").textContent = money(res?res.total:0);
+  $("#periodLabel").textContent = periodText(M,p) + ", " + REG_IN[r] + ".";
+  renderMain(res,off,r);
+  renderIncome(r);
+  renderMonthly(r);
+  renderRank(M,p,r);
+  renderProfiles(M,p,r,res);
+  renderGlossary();
+  placeTerm();
+}
 
-  out.innerHTML = `
+function renderMain(res,off,r){
+  const out=$("#out");
+  $("#peekIndec").textContent=pct(off);
+  if(!res){ out.innerHTML=`<p class="empty">Cargá al menos un gasto, o elegí uno de los ejemplos, para ver tu inflación.</p>`; $("#peekYou").textContent="—"; return; }
+  const you=res.value, diff=you-off;
+  const top=[...res.rows].sort((a,b)=>b.aporte-a.aporte).slice(0,2);
+  let verdict;
+  if(Math.abs(diff)<0.05*Math.max(Math.abs(off),1)) verdict=`Tu inflación es prácticamente igual a la oficial.`;
+  else verdict=`Tus precios subieron <b>${T("pp",pct(Math.abs(diff)).replace("%"," puntos"))}</b> ${diff>0?"más":"menos"} que el índice oficial.`;
+  if(you>0) verdict+=` Lo que más te empuja: ${top.map(t=>t.name.toLowerCase()).join(" y ")}, que juntos explican ${pct(top.reduce((s,t)=>s+t.aporte,0)/you*100)} de tu número.`;
+  out.innerHTML=`
     <div class="versus">
       <div><div class="big you">${pct(you)}</div><div class="who">Tu inflación</div></div>
-      <div><div class="big indec">${pct(off)}</div><div class="who">INDEC, ${REG_TXT[r].replace(/^(la|el) /,"")}</div></div>
+      <div><div class="big indec">${pct(off)}</div><div class="who">INDEC ${REG_SHORT[r]}</div></div>
     </div>
     <p class="verdict">${verdict}</p>
-    <div class="chartbox">${chart(rows, you, off)}</div>
+    ${marimekko(res.rows,you,off)}
     <div class="legend"><span><i style="border-color:var(--you);border-top-width:3px"></i>Tu inflación</span><span><i style="border-color:var(--indec);border-top-style:dashed"></i>INDEC</span><span>Ancho: peso en tu gasto</span><span>Alto: cuánto subió</span></div>
-    <table>
-      <thead><tr><th>Rubro</th><th>Tu gasto</th><th>Suba</th><th>Aporte</th></tr></thead>
-      <tbody>${[...rows].sort((a,b)=>b.aporte-a.aporte).map(x=>`<tr><td><span class="sw" style="background:${x.c}"></span>${x.name}</td><td>${pct(x.share*100)}</td><td>${pct(x.v)}</td><td>${(Math.round(x.aporte*100)/100).toLocaleString("es-AR",{minimumFractionDigits:2})} pp</td></tr>`).join("")}</tbody>
-    </table>`;
-  $("#peekYou").textContent = pct(you); $("#peekIndec").textContent = pct(off);
+    <div class="tablebox"><table><thead><tr><th>Rubro</th><th>${T("ponderacion","Tu gasto")}</th><th>Suba</th><th>${T("aporte","Aporte")}</th></tr></thead>
+    <tbody>${[...res.rows].sort((a,b)=>b.aporte-a.aporte).map(x=>`<tr><td><span class="sw" style="background:${x.c}"></span>${x.name}</td><td>${pct(x.share*100)}</td><td>${pct(x.v)}</td><td>${x.aporte.toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2})} pp</td></tr>`).join("")}</tbody></table></div>
+    <div class="tools">
+      <button type="button" class="btn primary" data-img="download">${icon("image")}Descargar mi imagen</button>
+      ${navigator.canShare?`<button type="button" class="btn" data-img="share">${icon("share")}Compartir</button>`:""}
+      <span class="note">Una imagen con tu inflación, la del INDEC de tu región y tus rubros, lista para subir a redes.</span>
+    </div>`;
+  $("#peekYou").textContent=pct(you);
 }
+
+function fillIncomeBase(lv){
+  const {ok, pending} = incomeMonths(lv);
+  if(!ok.includes(state.incBase)) state.incBase = ok[0];
+  const today = new Date(), current = mnum(today.getFullYear(), today.getMonth()+1);
+  $("#incBase").innerHTML =
+    pending.map(k=>`<option value="${k}" disabled>${mnumName(k)} (${k===current?"mes actual, ":""}sin dato del INDEC todavía)</option>`).join("")
+    + ok.map(k=>`<option value="${k}">${mnumName(k)}</option>`).join("");
+  $("#incBase").value = state.incBase;
+}
+
+function renderIncome(r){
+  const lv = regionLevels(r);
+  fillIncomeBase(lv);
+  const {latest} = incomeMonths(lv);
+  const base = state.incBase, baseName = mnumName(base).toLowerCase(), latestName = mnumName(latest).toLowerCase();
+  $("#incPrevLabel").textContent = `Ingreso neto de ${baseName}`;
+  $("#incNote").textContent = `Tus precios se miden hasta ${latestName}, el último dato publicado por el INDEC. Los meses más nuevos se habilitan cuando salga el informe que falta.`;
+  const el=$("#incomeOut"), now=state.incNow, prev=state.incHist[base]||0;
+  const total = CATS.reduce((s,c)=>s+spend[c.id],0);
+  const you = inflationBetween(spend, lv, base, latest);
+  const off = (lv.general.get(latest)/lv.general.get(base)-1)*100;
+  const head = `<h3><span class="secic">${icon("wallet")}</span>Tu poder de compra</h3>`;
+  if(!now){ el.innerHTML=`${head}<p class="empty">Cargá tu ingreso actual para ver cuánto de tu sueldo se llevan tus gastos. Si además cargás tu ingreso de ${baseName}, calculamos si le ganaste a la inflación.</p>`; return; }
+  let html=`${head}<p class="sub">Entre ${baseName} y ${latestName}: tus precios subieron ${you===null?"—":pct(you)} y los del INDEC ${pct(off)}.</p>`;
+  if(prev && you!==null){
+    const w=(now/prev-1)*100;
+    const realYou=((1+w/100)/(1+you/100)-1)*100;
+    const realOff=((1+w/100)/(1+off/100)-1)*100;
+    const need=prev*(1+you/100);
+    html+=`<div class="kpis">
+      <div class="kpi"><div class="n">${signed(w)}</div><div class="l">Aumento de tu sueldo desde ${baseName}</div></div>
+      <div class="kpi"><div class="n ${realYou>=0?"pos":"neg"}">${signed(realYou)}</div><div class="l">Tu ${T("salario_real","sueldo real")}, con tu inflación</div></div>
+      <div class="kpi"><div class="n ${realOff>=0?"pos":"neg"}">${signed(realOff)}</div><div class="l">Tu sueldo real, con la del INDEC</div></div>
+    </div>
+    <p class="verdict">${realYou>=0
+      ? `Tu sueldo le ganó a tus precios: hoy podés comprar ${pct(realYou)} más que en ${baseName} con lo que cobrás.`
+      : `Tus precios le ganaron a tu sueldo: para comprar lo mismo que en ${baseName}, hoy deberías cobrar <b>${money(need)}</b>, ${money(need-now)} más de lo que cobrás.`}
+      ${Math.sign(realYou)!==Math.sign(realOff)&&Math.abs(realYou-realOff)>0.1?` Ojo: con la inflación oficial la conclusión sería la contraria, por eso importa medir la tuya.`:""}</p>`;
+  } else if(you===null){
+    html+=`<p class="empty">Cargá tus gastos arriba para completar el cálculo.</p>`;
+  } else {
+    html+=`<p class="sub">Cargá también tu ingreso de ${baseName} para saber si le ganaste a la inflación.</p>`;
+  }
+  if(total){
+    const share=total/now*100, left=now-total;
+    html+=`<p style="margin:14px 0 4px;font-weight:600">Tus gastos se llevan ${pct(share)} de tu ingreso</p>
+      <div class="scale" aria-hidden="true"><div style="width:${Math.min(share,100)}%${share>100?";background:var(--bad)":""}"></div></div>
+      <div class="scale-l"><span>Gastos ${money(total)}</span><span>${left>=0?"Te quedan":"Te faltan"} ${money(Math.abs(left))}</span></div>`;
+  }
+  el.innerHTML=html;
+}
+
+let mmSel=-1, mmSeries=[];
+function paintMonthlyRead(){
+  const s=mmSeries[mmSel], el=$("#mmRead"); if(!s||!el) return;
+  const d=s.you-s.off;
+  el.innerHTML=`<b>${s.name}:</b> tu inflación <b style="color:var(--you-ink)">${pct(s.you)}</b> · INDEC <b style="color:var(--indec)">${pct(s.off)}</b> · ${Math.abs(d)<0.05?"igual a la oficial":`${pct(Math.abs(d)).replace("%"," puntos")} ${d>0?"arriba":"abajo"}`}`;
+  document.querySelectorAll("#monthly .mm").forEach(g=>g.classList.toggle("sel",+g.dataset.i===mmSel));
+}
+function renderMonthly(r){
+  const el=$("#monthly");
+  const series=[...MONTHS].reverse().map(M=>{
+    const res=inflation(spend,M,"m",r);
+    return {label:cap(MES[M.month-1]).slice(0,3)+" "+String(M.year).slice(2), short:cap(MES[M.month-1]).slice(0,3), name:monthName(M), you:res?res.value:0, off:M.general.m[r]};
+  });
+  if(!CATS.some(c=>spend[c.id]>0)){ el.innerHTML=`<p class="empty">Cargá tus gastos en la calculadora para ver la evolución.</p>`; return; }
+  const sumYou=series.reduce((s,x)=>s*(1+x.you/100),1), sumOff=series.reduce((s,x)=>s*(1+x.off/100),1);
+  if(!(mmSel>=0 && mmSel<series.length)) mmSel=series.length-1;
+  el.innerHTML = `${monthlyChart(series,Math.max(260,el.clientWidth-44),mmSel)}
+    <p class="mmread" id="mmRead" aria-live="polite"></p>
+    <div class="legend"><span><s style="background:var(--you)"></s>Tu inflación</span><span><s style="background:var(--indec)"></s>INDEC ${REG_SHORT[r]}</span></div>
+    <p class="verdict" style="margin-bottom:0">Tocá un mes para ver el detalle. Sumando los ${series.length} meses, tus precios subieron ${pct((sumYou-1)*100)} y los del índice oficial ${pct((sumOff-1)*100)}.</p>`;
+  mmSeries=series; paintMonthlyRead();
+}
+$("#monthly").addEventListener("click",e=>{ const g=e.target.closest(".mm"); if(g){ mmSel=+g.dataset.i; paintMonthlyRead(); } });
+$("#monthly").addEventListener("keydown",e=>{ const g=e.target.closest(".mm"); if(g&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); mmSel=+g.dataset.i; paintMonthlyRead(); } });
+let mmResize; addEventListener("resize",()=>{ clearTimeout(mmResize); mmResize=setTimeout(()=>renderMonthly(state.region),150); });
+
+function renderRank(M,p,r){
+  $("#rankLead").innerHTML = `${periodText(M,p)}, ${REG_IN[r]}, según el ${T("indec","INDEC")}. En negrita, los ${T("division","rubros")} en los que vos gastás.`;
+  const rows=CATS.map(c=>({id:c.id,name:c.name,c:c.c,v:M.data[c.id][p][r],mine:spend[c.id]>0})).sort((a,b)=>b.v-a.v);
+  const max=Math.max(...rows.map(x=>Math.abs(x.v)),0.1);
+  $("#rank").innerHTML = rows.map(x=>`<div class="rk${x.mine?" mine":""}"><span class="nm" title="${x.name}">${catIcon(x.id,"sm")}${x.name}</span>
+    <div><div class="bar" style="width:${Math.abs(x.v)/max*100}%;background:${x.v<0?"var(--good)":x.c};opacity:${x.mine?1:.45}"></div></div>
+    <span class="v">${pct(x.v)}</span></div>`).join("")
+    + `<div class="rk" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px"><span class="nm"><b>Nivel general</b></span><div><div class="bar" style="width:${Math.abs(M.general[p][r])/max*100}%;background:var(--indec)"></div></div><span class="v">${pct(M.general[p][r])}</span></div>`;
+}
+
+function renderProfiles(M,p,r,res){
+  const off=M.general[p][r];
+  let html=Object.values(PRESETS).map(P=>{
+    const v=inflation(P.v,M,p,r).value;
+    return `<div class="panel prof"><h4><span class="secic">${icon(P.icon)}</span>${P.label}</h4><div class="n">${pct(v)}</div>
+      <div class="who">${v>=off?`${pct(v-off).replace("%"," puntos")} por encima del INDEC`:`${pct(off-v).replace("%"," puntos")} por debajo del INDEC`}</div>
+      <p>${P.desc}</p></div>`;
+  }).join("");
+  if(res) html+=`<div class="panel prof you-card"><h4><span class="secic">${icon("user")}</span>Vos</h4><div class="n" style="color:var(--you-ink)">${pct(res.value)}</div>
+    <div class="who">INDEC ${REG_SHORT[r]}: ${pct(off)}</div><p>Con la canasta que cargaste en la calculadora.</p></div>`;
+  $("#profiles").innerHTML=html;
+}
+
 fillInputs(); update();
+
+/* ===================== IMAGEN PARA COMPARTIR ===================== */
+const loadImg = src => new Promise(ok=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=()=>ok(null); im.src=src; });
+const mixHex = (a,b,t) => { // mezcla dos colores #rrggbb
+  const h=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));
+  const A=h(a), B=h(b); return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join("");
+};
+function imageTitle(M,p){
+  if(p==="m") return `Mi inflación de ${MES[M.month-1]} ${M.year}`;
+  if(p==="a") return `Mi inflación acumulada en ${M.year}`;
+  return `Mi inflación de los últimos 12 meses`;
+}
+async function makeShareImage(){
+  const M=MONTHS[state.mi], r=state.region, p=state.period;
+  const res=inflation(spend,M,p,r); if(!res) return null;
+  const off=M.general[p][r], you=res.value, diff=you-off;
+  const cs=getComputedStyle(document.documentElement), v=n=>cs.getPropertyValue(n).trim();
+  const C={bg:v("--bg"),surface:v("--surface"),ink:v("--ink"),muted:v("--muted"),line:v("--line"),you:v("--you"),youInk:v("--you-ink"),indec:v("--indec")};
+  const rows=[...res.rows].sort((a,b)=>b.aporte-a.aporte);
+  const W=1080, P=70, rowH=76, top=600, H=top+rows.length*rowH+190;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const g=cv.getContext("2d");
+  try{ await document.fonts.load("800 40px Archivo"); await document.fonts.load("600 40px Archivo"); }catch(e){}
+  const font=(w,px,wide)=>{ g.font=`${w} ${px}px Archivo, system-ui, sans-serif`; if("fontStretch" in g) g.fontStretch=wide?"expanded":"normal"; };
+  const rr=(x,y,w,h,rad)=>{ g.beginPath(); g.roundRect?g.roundRect(x,y,w,h,rad):g.rect(x,y,w,h); };
+  const shrink=(t,w,px,maxW,wide)=>{ font(w,px,wide); while(px>20&&g.measureText(t).width>maxW){ px-=2; font(w,px,wide); } };
+  const fit=(t,maxW)=>{ if(g.measureText(t).width<=maxW) return t; while(t.length>1&&g.measureText(t+"…").width>maxW) t=t.slice(0,-1); return t+"…"; };
+  const icons=await Promise.all(rows.map(x=>loadImg("data:image/svg+xml;charset=utf-8,"+encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="${mixHex(x.c,C.ink,.28)}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[x.id]}</svg>`))));
+
+  // fondo y tarjeta
+  g.fillStyle=C.bg; g.fillRect(0,0,W,H);
+  g.fillStyle=C.surface; rr(30,30,W-60,H-60,36); g.fill();
+  g.strokeStyle=C.line; g.lineWidth=2; g.stroke();
+  g.fillStyle=C.you; rr(30,30,W-60,14,[36,36,0,0]); g.fill();
+
+  // encabezado
+  g.textBaseline="alphabetic"; g.textAlign="left";
+  const sub=periodText(M,p).replace(/^Suba de precios de /,"").replace(/^Suba /,"");
+  font(600,28); g.fillStyle=C.muted; g.fillText(fit(cap(sub)+` · ${REG_SHORT[r]}`,W-2*P),P,122);
+  shrink(imageTitle(M,p),800,62,W-2*P,true); g.fillStyle=C.ink; g.fillText(imageTitle(M,p),P,196);
+
+  const bigW=W/2-P-40;
+  shrink(pct(you),800,150,bigW,true); g.fillStyle=C.youInk; g.fillText(pct(you),P,380);
+  font(600,30); g.fillStyle=C.muted; g.fillText("Mi inflación",P,428);
+  const x2=W/2+30;
+  shrink(pct(off),800,150,bigW,true); g.fillStyle=C.indec; g.fillText(pct(off),x2,380);
+  font(600,30); g.fillStyle=C.muted; g.fillText(`INDEC ${REG_SHORT[r]}`,x2,428);
+
+  const same=Math.abs(diff)<0.05*Math.max(Math.abs(off),1);
+  font(700,34); g.fillStyle=C.ink;
+  g.fillText(same?"Prácticamente igual a la oficial":`${pct(Math.abs(diff)).replace("%"," puntos")} ${diff>0?"por encima":"por debajo"} del índice oficial`,P,500);
+
+  g.strokeStyle=C.line; g.lineWidth=2; g.beginPath(); g.moveTo(P,540); g.lineTo(W-P,540); g.stroke();
+  font(600,22); g.fillStyle=C.muted; g.fillText("RUBRO Y PESO EN MI GASTO",P,578);
+  g.textAlign="right"; g.fillText("CUÁNTO SUBIÓ",W-P,578); g.textAlign="left";
+
+  // barras por rubro
+  const bx0=610, bx1=W-P-130;
+  const vals=rows.map(x=>x.v).concat([you,off,0]);
+  const vmin=Math.min(0,...vals), vmax=Math.max(...vals)*1.08||1;
+  const X=val=>bx0+(val-vmin)/(vmax-vmin)*(bx1-bx0);
+  rows.forEach((x,i)=>{
+    const y=top+i*rowH+10;
+    g.fillStyle=x.c+"2E"; rr(P,y,56,56,14); g.fill();
+    if(icons[i]) g.drawImage(icons[i],P+12,y+12,32,32);
+    font(600,27); g.fillStyle=C.ink; g.fillText(fit(x.name,bx0-P-110),P+76,y+26);
+    font(400,22); g.fillStyle=C.muted; g.fillText(`${pct(x.share*100)} de mi gasto`,P+76,y+56);
+    g.fillStyle=x.c; const a=X(Math.min(0,x.v)), b=X(Math.max(0,x.v)); rr(a,y+18,Math.max(b-a,3),22,5); g.fill();
+    font(700,29); g.fillStyle=C.ink; g.textAlign="right"; g.fillText(pct(x.v),W-P,y+38); g.textAlign="left";
+  });
+  const yTop=top, yBot=top+rows.length*rowH;
+  g.strokeStyle=C.ink; g.lineWidth=2; g.beginPath(); g.moveTo(X(0),yTop); g.lineTo(X(0),yBot); g.stroke();
+  g.strokeStyle=C.indec; g.lineWidth=3; g.setLineDash([10,8]); g.beginPath(); g.moveTo(X(off),yTop-6); g.lineTo(X(off),yBot); g.stroke(); g.setLineDash([]);
+  g.strokeStyle=C.you; g.lineWidth=4; g.beginPath(); g.moveTo(X(you),yTop-6); g.lineTo(X(you),yBot); g.stroke();
+
+  // pie
+  const fy=yBot+40;
+  g.fillStyle=C.you; g.fillRect(P,fy,34,5); font(600,22); g.fillStyle=C.muted; g.fillText("Mi inflación",P+46,fy+8);
+  g.strokeStyle=C.indec; g.lineWidth=3; g.setLineDash([10,8]); g.beginPath(); g.moveTo(P+230,fy+3); g.lineTo(P+264,fy+3); g.stroke(); g.setLineDash([]);
+  g.fillText(`INDEC ${REG_SHORT[r]}`,P+276,fy+8);
+  font(700,26); g.fillStyle=C.ink; g.fillText("Calculala vos: Tu inflación no es la del INDEC",P,fy+72);
+  font(400,21); g.fillStyle=C.muted; g.fillText(`Datos: INDEC, IPC ${MES[M.month-1]} ${M.year}. Hecho por estudiantes de Economía de la UBA.`,P,fy+106);
+
+  return await new Promise(ok=>cv.toBlob(ok,"image/png"));
+}
+$("#out").addEventListener("click", async e=>{
+  const btn=e.target.closest("[data-img]"); if(!btn) return;
+  btn.disabled=true;
+  try{
+    const blob=await makeShareImage(); if(!blob) return;
+    const M=MONTHS[state.mi], name=`mi-inflacion-${MES[M.month-1]}-${M.year}.png`;
+    const file=new File([blob],name,{type:"image/png"});
+    if(btn.dataset.img==="share" && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:imageTitle(M,state.period)}); }catch(err){}
+    } else {
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }
+  } finally { btn.disabled=false; }
+});
+
+/* ===================== FACTURAS ===================== */
+const LKEY="tu-inflacion-facturas";
+const DEFAULT_ITEMS=[["Alquiler","alq"],["Expensas","alq"],["Luz","ener"],["Gas","ener"],["Internet","com"],["Celular","com"],["Prepaga","prep"],["Carga de SUBE","tpub"],["Supermercado","alim"]];
+const uid=()=>"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const keyOf=(y,m)=>`${y}-${String(m).padStart(2,"0")}`;
+const parseKey=k=>{const [y,m]=k.split("-").map(Number);return {year:y,month:m};};
+const prevKey=k=>{const {year,month}=parseKey(k);return month===1?keyOf(year-1,12):keyOf(year,month-1);};
+const keyName=k=>{const {year,month}=parseKey(k);return cap(MES[month-1])+" "+year;};
+const keyShort=k=>{const {year,month}=parseKey(k);return cap(MES[month-1]).slice(0,3)+" "+String(year).slice(2);};
+const indecFor=(k)=>{const {year,month}=parseKey(k);return MONTHS.find(M=>M.year===year&&M.month===month)||null;};
+
+let ledger;
+try{ ledger=JSON.parse(localStorage.getItem(LKEY)||"null"); }catch(e){ ledger=null; }
+const now=new Date(), nextM=new Date(now.getFullYear(),now.getMonth()+1,1);
+if(!ledger||!Array.isArray(ledger.items)){
+  ledger={items:DEFAULT_ITEMS.map(([name,cat])=>({id:uid(),name,cat})),rec:{},sel:keyOf(now.getFullYear(),now.getMonth()+1)};
+}
+ledger.rec=ledger.rec||{};
+function lsave(){ try{ localStorage.setItem(LKEY,JSON.stringify(ledger)); }catch(e){} }
+
+function monthKeys(){ // desde enero 2026 hasta el mes que viene, más cualquier mes guardado
+  const set=new Set(Object.keys(ledger.rec));
+  let y=2026,m=1; const endY=nextM.getFullYear(), endM=nextM.getMonth()+1;
+  while(y<endY||(y===endY&&m<=endM)){ set.add(keyOf(y,m)); m++; if(m>12){m=1;y++;} }
+  return [...set].sort().reverse();
+}
+function fillLMonths(){
+  const sel=$("#lMonth"); sel.innerHTML="";
+  monthKeys().forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=keyName(k);sel.appendChild(o);});
+  if(!monthKeys().includes(ledger.sel)) ledger.sel=monthKeys()[0];
+  sel.value=ledger.sel;
+}
+const catOptions=cur=>CATS.map(c=>`<option value="${c.id}"${c.id===cur?" selected":""}>${c.name}</option>`).join("");
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+function renderLedgerRows(){
+  const k=ledger.sel, pk=prevKey(k);
+  $("#lPrevH").textContent=keyName(pk); $("#lCurH").textContent=keyName(k);
+  const box=$("#lrows"); box.innerHTML="";
+  ledger.items.forEach(it=>{
+    const row=document.createElement("div"); row.className="lrow"; row.dataset.id=it.id;
+    const pv=(ledger.rec[pk]||{})[it.id]||0, cv=(ledger.rec[k]||{})[it.id]||0;
+    row.innerHTML=`<div class="lname"><div class="lnm-row">${catIcon(it.cat)}<input class="nm" value="${esc(it.name)}" aria-label="Nombre del concepto"></div><select class="cat" aria-label="Rubro">${catOptions(it.cat)}</select></div>
+      <div class="money prev" data-label="${keyName(pk)}"><span>$</span><input inputmode="numeric" autocomplete="off" placeholder="0" value="${fmtIn(pv)}" aria-label="${esc(it.name)} en ${keyName(pk)}"></div>
+      <div class="money cur" data-label="${keyName(k)}"><span>$</span><input inputmode="numeric" autocomplete="off" placeholder="0" value="${fmtIn(cv)}" aria-label="${esc(it.name)} en ${keyName(k)}"></div>
+      <div class="lvar"><b></b><small></small></div>
+      <button type="button" class="del" aria-label="Quitar ${esc(it.name)}">×</button>`;
+    const setAmt=(key,inp)=>{const v=parse(inp.value);inp.value=fmtIn(v);ledger.rec[key]=ledger.rec[key]||{};if(v)ledger.rec[key][it.id]=v;else delete ledger.rec[key][it.id];recalcLedger();};
+    row.querySelector(".prev input").addEventListener("input",e=>setAmt(pk,e.target));
+    row.querySelector(".cur input").addEventListener("input",e=>setAmt(k,e.target));
+    row.querySelector(".nm").addEventListener("input",e=>{it.name=e.target.value;lsave();recalcLedger(false);});
+    row.querySelector(".cat").addEventListener("change",e=>{it.cat=e.target.value;row.querySelector(".catic").outerHTML=catIcon(it.cat);recalcLedger();});
+    row.querySelector(".del").addEventListener("click",()=>{
+      ledger.items=ledger.items.filter(x=>x.id!==it.id);
+      Object.values(ledger.rec).forEach(r=>delete r[it.id]);
+      renderLedgerRows(); recalcLedger();
+    });
+    box.appendChild(row);
+  });
+  recalcLedger();
+}
+
+function ledgerMonth(k,r){ // variación de tus facturas en el mes k
+  const cur=ledger.rec[k]||{}, prev=ledger.rec[prevKey(k)]||{};
+  const M=indecFor(k);
+  const items=ledger.items.filter(it=>cur[it.id]>0&&prev[it.id]>0).map(it=>({
+    ...it, p:prev[it.id], c:cur[it.id], v:(cur[it.id]/prev[it.id]-1)*100,
+    ind: M&&M.data[it.cat]?M.data[it.cat].m[r]:null
+  }));
+  if(!items.length) return null;
+  const sp=items.reduce((s,x)=>s+x.p,0), sc=items.reduce((s,x)=>s+x.c,0);
+  const allInd=items.every(x=>x.ind!==null);
+  return {items, sp, sc, v:(sc/sp-1)*100, M,
+    off: M?M.general.m[r]:null,
+    asIndec: allInd? items.reduce((s,x)=>s+x.p*x.ind,0)/sp : null};
+}
+
+function recalcLedger(rerenderHist=true){
+  lsave();
+  const k=ledger.sel, r=state.region, res=ledger.items.length?ledgerMonth(k,r):null;
+  const M=indecFor(k);
+  // variación por fila
+  document.querySelectorAll("#lrows .lrow").forEach(row=>{
+    const it=ledger.items.find(x=>x.id===row.dataset.id); if(!it) return;
+    const c=(ledger.rec[k]||{})[it.id], p=(ledger.rec[prevKey(k)]||{})[it.id];
+    const b=row.querySelector(".lvar b"), sm=row.querySelector(".lvar small");
+    if(c&&p){const v=(c/p-1)*100;b.textContent=signed(v);b.className=v>0.05?"neg":v<-0.05?"pos":"";}
+    else{b.textContent="—";b.className="";}
+    const ind=M&&M.data[it.cat]?M.data[it.cat].m[r]:null;
+    sm.textContent=ind!==null?`INDEC ${pct(ind)}`:"";
+  });
+  // resumen
+  const out=$("#lOut"), pk=prevKey(k);
+  if(!res){
+    out.innerHTML=`<h3>Tus facturas de ${keyName(k).toLowerCase()}</h3><p class="empty">Completá al menos un concepto con lo que pagaste en ${keyName(pk).toLowerCase()} y en ${keyName(k).toLowerCase()} para ver cuánto te subió.</p>`;
+  } else {
+    const {year,month}=parseKey(k);
+    const pubMonth=MES[month%12];
+    const ups=[...res.items].sort((a,b)=>b.v-a.v).slice(0,3);
+    out.innerHTML=`<h3>Tus facturas de ${keyName(k).toLowerCase()}</h3>
+      <p class="sub">Contra ${keyName(pk).toLowerCase()}, en ${res.items.length} ${res.items.length===1?"concepto":"conceptos"}.</p>
+      <div class="versus">
+        <div><div class="big you">${pct(res.v)}</div><div class="who">Lo que subió lo que pagás</div></div>
+        <div>${res.off!==null?`<div class="big indec">${pct(res.off)}</div><div class="who">INDEC ${REG_SHORT[r]}, ${MES[month-1]}</div>`
+          :`<div class="who" style="margin-top:8px">El INDEC todavía no publicó la inflación de ${MES[month-1]}. Sale a mediados de ${pubMonth}${month===12?" del año que viene":""}, y ahí aparece la comparación.</div>`}</div>
+      </div>
+      <p class="verdict">Este mes pagaste <b>${money(res.sc-res.sp)}</b> ${res.sc>=res.sp?"más":"menos"} que el anterior por lo mismo (${money(res.sp)} contra ${money(res.sc)}).
+      ${res.asIndec!==null?` Si cada factura hubiera subido lo que marca el INDEC para su rubro, la suba habría sido de ${pct(res.asIndec)}.`:""}</p>
+      <h3 style="font-size:.95rem;margin-top:8px">Lo que más te subió</h3>
+      <ul class="ups">${ups.map(x=>`<li><span>${esc(x.name)}</span><b class="${x.v>0.05?"neg":x.v<-0.05?"pos":""}">${signed(x.v)}</b></li>`).join("")}</ul>`;
+  }
+  if(rerenderHist) renderLedgerHist();
+}
+
+function histChart(series,W=640){
+  const H=230,padL=10,padR=10,padT=22,padB=30, iw=W-padL-padR, ih=H-padT-padB;
+  const vals=series.flatMap(s=>[s.you,s.off??0]).concat([0]);
+  let max=Math.max(...vals)*1.18||1, min=Math.min(0,Math.min(...vals)*1.18);
+  const y=v=>padT+(max-v)/(max-min)*ih;
+  const gw=iw/series.length, bw=Math.min(40,gw*0.3); let g="";
+  const showVals = bw+2 >= 32;
+  series.forEach((s,i)=>{
+    const cx=padL+gw*i+gw/2;
+    const bars=[[s.you,"var(--you)",s.off===null?-bw/2:-bw-2]];
+    if(s.off!==null) bars.push([s.off,"var(--indec)",2]);
+    bars.forEach(([v,col,dx])=>{const top=y(Math.max(v,0)),h=Math.abs(y(v)-y(0));
+      g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"><title>${s.label}: ${pct(v)}</title></rect>${showVals?`<text x="${cx+dx+bw/2}" y="${v>=0?top-5:top+h+13}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`:""}`;});
+    g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="12" fill="var(--muted)">${s.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Suba mensual de tus facturas comparada con el INDEC"><line x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>${g}</svg>`;
+}
+function renderLedgerHist(){
+  const r=state.region;
+  const series=monthKeys().slice().reverse().map(k=>{const x=ledgerMonth(k,r);return x?{label:keyShort(k),you:x.v,off:x.off}:null;}).filter(Boolean);
+  const el=$("#lHist");
+  if(series.length<2){
+    el.innerHTML=`<h3>Tu serie de inflación</h3><p class="empty" style="padding-bottom:0">Cuando tengas facturas cargadas en al menos tres meses seguidos, acá vas a ver tu inflación mes a mes. Tip: el mes que viene entrá, elegí el mes nuevo y solo completá la columna de la derecha, porque la del mes anterior ya queda guardada.</p>`;
+    return;
+  }
+  const acc=(series.reduce((s,x)=>s*(1+x.you/100),1)-1)*100;
+  el.innerHTML=`<h3>Tu serie de inflación</h3><p class="sub">Suba de tus facturas en cada mes que cargaste.</p>${histChart(series,Math.max(260,el.clientWidth-44))}
+    <div class="legend"><span><s style="background:var(--you)"></s>Tus facturas</span><span><s style="background:var(--indec)"></s>INDEC ${REG_SHORT[r]}</span></div>
+    <p class="verdict" style="margin-bottom:0">En los ${series.length} meses que registraste, lo que pagás subió ${pct(acc)} acumulado.</p>`;
+}
+
+$("#lMonth").addEventListener("change",e=>{ledger.sel=e.target.value;renderLedgerRows();});
+$("#lRegion").addEventListener("change",e=>{state.region=+e.target.value;$("#region").value=state.region;update();recalcLedger();});
+$("#region").addEventListener("change",()=>{$("#lRegion").value=state.region;recalcLedger();});
+$("#lAdd").addEventListener("click",()=>{
+  ledger.items.push({id:uid(),name:"Nuevo concepto",cat:"hogar"}); renderLedgerRows();
+  const last=[...document.querySelectorAll("#lrows .nm")].pop(); if(last){last.focus();last.select();}
+});
+$("#lReset").addEventListener("click",()=>{
+  if(!confirm("¿Borrar todas las facturas guardadas? Esto no se puede deshacer.")) return;
+  ledger.rec={}; ledger.items=DEFAULT_ITEMS.map(([name,cat])=>({id:uid(),name,cat})); renderLedgerRows();
+});
+$("#lExport").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(ledger,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="mis-facturas-tu-inflacion.json";
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+});
+$("#lImport").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+      const d=JSON.parse(rd.result);
+      if(!Array.isArray(d.items)||typeof d.rec!=="object") throw 0;
+      d.items=d.items.filter(it=>it&&it.id&&CATS.some(c=>c.id===it.cat)).map(it=>({id:String(it.id),name:String(it.name||"Concepto"),cat:it.cat}));
+      ledger={items:d.items,rec:d.rec,sel:d.sel||ledger.sel}; fillLMonths(); renderLedgerRows();
+    }catch(err){ alert("Ese archivo no parece una copia de Tu inflación."); }
+    e.target.value="";
+  };
+  rd.readAsText(f);
+});
+$("#lRegion").value=state.region;
+fillLMonths(); renderLedgerRows();
 </script>
 </body>
 </html>
