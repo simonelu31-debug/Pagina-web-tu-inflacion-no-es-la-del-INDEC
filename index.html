@@ -205,6 +205,10 @@ h3 .secic{font-size:1.25rem;margin-right:.35em;vertical-align:-.3em;display:inli
 .mmchart .mm:focus-visible rect[fill="transparent"]{stroke:var(--you);stroke-width:2}
 .mmread{margin:10px 0 6px;font-size:.95rem;min-height:1.5em}
 
+.copyhint{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:var(--field);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:.88rem;color:var(--muted)}
+.copyhint .btn{padding:6px 10px;font-size:.85rem}
+.mmread .btn{margin-left:8px;padding:3px 10px;font-size:.82rem}
+
 /* sueldo */
 .income-in{display:grid;gap:14px}
 .income-in .money input{text-align:right}
@@ -304,10 +308,10 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
   <section class="block" id="calculadora">
     <div class="grid two">
       <div class="panel">
-        <h3><span class="secic" data-icon="calc"></span>Tus gastos de un mes típico</h3>
-        <p class="sub">No hace falta exactitud: con montos aproximados alcanza. Lo que importa es la proporción entre rubros.</p>
+        <h3><span class="secic" data-icon="calc"></span><span id="calcTitle">Tus gastos</span></h3>
+        <p class="sub" id="calcSub"></p>
         <div class="controls">
-          <label class="ctl">Mes del informe
+          <label class="ctl">Mes
             <select id="month"></select>
           </label>
           <label class="ctl">Dónde vivís
@@ -330,8 +334,9 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
         </div>
         <p class="calc-help">¿Qué significa <button type="button" class="term" data-term="mensual">en el mes</button>, <button type="button" class="term" data-term="acumulada">en el año</button> o <button type="button" class="term" data-term="interanual">en 12 meses</button>?</p>
         <div class="presets">
-          <button type="button" id="clearAll">Borrar todo</button>
+          <button type="button" id="clearAll">Borrar este mes</button>
         </div>
+        <div class="copyhint" id="copyHint" hidden></div>
         <div id="rows"></div>
         <div class="total"><span>Total mensual</span><span id="total">$ 0</span></div>
       </div>
@@ -401,7 +406,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
   <!-- 3. MES A MES -->
   <section class="block" id="mes-a-mes">
     <h2 class="sec"><span class="secic" data-icon="calendar"></span>Tu inflación, mes a mes</h2>
-    <p class="lead">Con tu <button type="button" class="term" data-term="canasta_fija">misma canasta</button>, así se movieron tus precios en cada informe del INDEC que tenemos cargado, al lado del índice oficial de tu <button type="button" class="term" data-term="region">región</button>. Usamos tus gastos de hoy para todos los meses, así que no hace falta cargar cada uno: cada barra muestra cuánto habría subido esa misma canasta con los precios de ese mes.</p>
+    <p class="lead">Tu inflación de cada mes, calculada con los gastos que cargaste para ese mes (tu <button type="button" class="term" data-term="canasta_fija">canasta</button> de ese mes), al lado del índice oficial de tu <button type="button" class="term" data-term="region">región</button>. Los meses en los que no cargaste gastos muestran solo el dato del INDEC.</p>
     <div class="panel" id="monthly"></div>
   </section>
 
@@ -448,7 +453,7 @@ footer{padding:36px 0 110px;color:var(--muted);font-size:.88rem;border-top:1px s
     </details>
     <details>
       <summary>Limitaciones</summary>
-      <p>Para el acumulado y los 12 meses usamos tu distribución de gasto actual como si hubiera sido la misma todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos (<button type="button" class="term" data-term="sustitucion">efecto sustitución</button>), tu inflación real puede ser más baja.</p>
+      <p>Cada mes usa los gastos que cargaste para ese mes. Para el acumulado y los 12 meses usamos los gastos del mes elegido como si hubieran sido iguales todo el período, lo cual es una aproximación. Tampoco sabemos qué marcas o comercios elegís: si cambiaste de hábitos para gastar menos (<button type="button" class="term" data-term="sustitucion">efecto sustitución</button>), tu inflación real puede ser más baja.</p>
     </details>
   </section>
 </main>
@@ -1056,8 +1061,8 @@ const GLOSS = {
     ex:()=>{const x=gd(); return `La inflación interanual de ${x.reg} en ${x.mes} fue ${pct(x.y)}: lo que hace un año costaba $ 10.000, hoy cuesta en promedio ${money(10000*(1+x.y/100))}.`;},
     rel:["mensual","acumulada"]},
   canasta_fija:{t:"Canasta fija", g:"medir",
-    d:"Medir la inflación con las mismas cantidades de cada cosa en todos los meses, para que lo único que cambie sean los precios. Así trabaja el IPC, y así trabaja esta calculadora: tomamos tus gastos de un mes típico y vemos cuánto habrían subido con los precios de cada mes.",
-    ex:()=>"Si cargás $ 100.000 de supermercado y $ 50.000 de alquiler, la barra de marzo en \u201cMes a mes\u201d muestra cuánto más habría costado esa misma canasta con las subas de marzo, aunque en marzo hayas gastado distinto. Para medir lo que realmente pagaste cada mes, está la sección de facturas.",
+    d:"Medir la suba de precios manteniendo las mismas cantidades de cada cosa, para que lo único que cambie sean los precios. El IPC usa siempre la misma canasta. En esta calculadora, cada mes usa los gastos que cargaste para ese mes: la suba de ese mes se pondera con esos montos.",
+    ex:()=>"Si en agosto cargás $ 100.000 de supermercado y $ 50.000 de alquiler, tu inflación de agosto pondera la suba de cada rubro con esos montos. Si en julio gastaste distinto, cargalo en julio y ese mes usa esa otra canasta.",
     rel:["canasta","sustitucion","ponderacion"]},
   ponderacion:{t:"Ponderación (peso)", g:"medir",
     d:"La parte de tu gasto total que se lleva cada rubro. Define cuánto te afecta que ese rubro suba: un aumento en algo en lo que gastás mucho te pega más que el mismo aumento en algo que casi no comprás.",
@@ -1227,19 +1232,32 @@ $("#gSearch").addEventListener("input",renderGlossary);
 paintGChips();
 
 /* ===================== estado ===================== */
-let spend = Object.fromEntries(CATS.map(c=>[c.id,0]));
+// Los gastos se guardan por mes: spendBy["2026-08"] = {alim:..., alq:..., ...}
+const mkey = M => `${M.year}-${String(M.month).padStart(2,"0")}`;
+const emptyBasket = () => Object.fromEntries(CATS.map(c=>[c.id,0]));
+const hasData = b => !!b && CATS.some(c=>(b[c.id]||0)>0);
+let spendBy = {};
+let spend = emptyBasket(); // los gastos del mes elegido (apunta a spendBy[mes])
 let state = {mi:0, region:0, period:"m", incNow:0, incBase:null, incHist:{}};
+// Versiones anteriores arrancaban con este ejemplo cargado: si sigue intacto, no se migra
+const OLD_EXAMPLE={alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000};
 try{
   const saved = JSON.parse(localStorage.getItem("tu-inflacion") || "null");
-  if(saved){ Object.assign(spend, saved.spend||{}); Object.assign(state, saved.state||{}); }
+  if(saved){
+    Object.assign(state, saved.state||{});
+    if(saved.spendBy && typeof saved.spendBy==="object") spendBy = saved.spendBy;
+    else if(hasData(saved.spend) && !CATS.every(c=>(saved.spend[c.id]||0)===OLD_EXAMPLE[c.id]))
+      spendBy[mkey(MONTHS[0])] = {...emptyBasket(), ...saved.spend}; // versión anterior: un solo mes
+  }
 }catch(e){}
-// Versiones anteriores arrancaban con un ejemplo cargado: si sigue intacto, lo vaciamos
-const OLD_EXAMPLE={alim:250000,alq:480000,ener:35000,tpub:45000,auto:0,prep:0,rem:15000,com:30000,rest:90000,rec:70000,edu:20000,ropa:40000,hogar:20000,cuid:25000,alc:20000};
-if(CATS.every(c=>(spend[c.id]||0)===OLD_EXAMPLE[c.id])) CATS.forEach(c=>spend[c.id]=0);
-state.mi = 0; // siempre abrir en el mes más reciente
+function selectMonth(i){ state.mi=i; spend = spendBy[mkey(MONTHS[i])] || emptyBasket(); }
+selectMonth(0); // siempre abrir en el mes más reciente
 state.incHist = state.incHist || {};
 delete state.incPrev; // versión anterior: el ingreso previo dependía del período de la calculadora
-function save(){ try{ localStorage.setItem("tu-inflacion", JSON.stringify({spend,state})); }catch(e){} }
+function save(){
+  for(const k in spendBy) if(!hasData(spendBy[k])) delete spendBy[k];
+  try{ localStorage.setItem("tu-inflacion", JSON.stringify({spendBy,state})); }catch(e){}
+}
 
 /* ===================== armado de controles ===================== */
 $("#lastMonth").textContent = monthName(MONTHS[0]).toLowerCase();
@@ -1254,7 +1272,7 @@ CATS.forEach(c=>{
     <div class="money"><span>$</span><input id="in-${c.id}" inputmode="numeric" autocomplete="off" placeholder="0"></div>`;
   rowsEl.appendChild(row);
   const inp = row.querySelector("input");
-  inp.addEventListener("input", ()=>{ spend[c.id]=parse(inp.value); inp.value=fmtIn(spend[c.id]); update(); });
+  inp.addEventListener("input", ()=>{ spend[c.id]=parse(inp.value); inp.value=fmtIn(spend[c.id]); spendBy[mkey(MONTHS[state.mi])]=spend; update(); });
 });
 $("#incNow").addEventListener("input",e=>{ state.incNow=parse(e.target.value); e.target.value=fmtIn(state.incNow); update(); });
 $("#incPrev").addEventListener("input",e=>{
@@ -1270,7 +1288,24 @@ function fillInputs(){
 }
 $("#clearAll").insertAdjacentHTML("afterbegin", icon("trash"));
 $("#clearAll").addEventListener("click",()=>{ CATS.forEach(c=> spend[c.id]=0); fillInputs(); update(); $("#in-"+CATS[0].id).focus(); });
-$("#month").addEventListener("change",e=>{state.mi=+e.target.value;update();});
+$("#month").addEventListener("change",e=>{ selectMonth(+e.target.value); fillInputs(); update(); });
+$("#copyHint").addEventListener("click",e=>{
+  const b=e.target.closest("[data-copy]"); if(!b) return;
+  spend={...spendBy[b.dataset.copy]}; spendBy[mkey(MONTHS[state.mi])]=spend; fillInputs(); update();
+});
+function paintCalcMonth(){
+  const M=MONTHS[state.mi], mes=monthName(M).toLowerCase();
+  $("#calcTitle").textContent=`Tus gastos de ${mes}`;
+  $("#calcSub").textContent=`Cargá cuánto gastaste en ${mes}. Con montos aproximados alcanza. Cada mes se guarda por separado.`;
+  [...$("#month").options].forEach((o,i)=>{ o.textContent=monthName(MONTHS[i])+(hasData(spendBy[mkey(MONTHS[i])])?" ✓":""); });
+  const hint=$("#copyHint");
+  if(hasData(spend)){ hint.hidden=true; return; }
+  // el mes más cercano que tenga gastos (si empatan, el más nuevo)
+  const src=MONTHS.map((X,i)=>({i,k:mkey(X)})).filter(x=>hasData(spendBy[x.k])).sort((a,b)=>Math.abs(a.i-state.mi)-Math.abs(b.i-state.mi)||a.i-b.i)[0];
+  if(!src){ hint.hidden=true; return; }
+  hint.hidden=false;
+  hint.innerHTML=`<span>Todavía no cargaste gastos de ${mes}.</span><button type="button" class="btn" data-copy="${src.k}">Copiar los de ${monthName(MONTHS[src.i]).toLowerCase()}</button>`;
+}
 $("#region").addEventListener("change",e=>{state.region=+e.target.value;update();});
 $("#period").addEventListener("change",e=>{state.period=e.target.value;update();});
 
@@ -1299,7 +1334,7 @@ function marimekko(rows, you, off){
 }
 function monthlyChart(series,W,sel){ // series: [{label, short, you, off}] de más viejo a más nuevo
   const H=230,padL=6,padR=6,padT=22,padB=28, iw=W-padL-padR, ih=H-padT-padB;
-  const vals=series.flatMap(s=>[s.you,s.off]).concat([0]);
+  const vals=series.flatMap(s=>[s.you,s.off]).filter(v=>v!==null).concat([0]);
   let max=Math.max(...vals)*1.12, min=Math.min(0,Math.min(...vals));
   const y=v=>padT+(max-v)/(max-min)*ih;
   const gw=iw/series.length, bw=Math.min(40,gw*0.36);
@@ -1308,9 +1343,9 @@ function monthlyChart(series,W,sel){ // series: [{label, short, you, off}] de m�
   let g="";
   series.forEach((s,i)=>{
     const cx=padL+gw*i+gw/2;
-    g+=`<g class="mm${i===sel?" sel":""}" data-i="${i}" tabindex="0" role="button" aria-label="${s.label}: tu inflación ${pct(s.you)}, INDEC ${pct(s.off)}">
+    g+=`<g class="mm${i===sel?" sel":""}" data-i="${i}" tabindex="0" role="button" aria-label="${s.label}: ${s.you===null?"sin gastos cargados":`tu inflación ${pct(s.you)}`}, INDEC ${pct(s.off)}">
       <rect x="${cx-gw/2}" y="0" width="${gw}" height="${H}" fill="transparent"/>`;
-    [[s.you,"var(--you)",-bw-1.5],[s.off,"var(--indec)",1.5]].forEach(([v,col,dx])=>{
+    [[s.you,"var(--you)",-bw-1.5],[s.off,"var(--indec)",1.5]].filter(([v])=>v!==null).forEach(([v,col,dx])=>{
       const top=y(Math.max(v,0)), h=Math.abs(y(v)-y(0));
       g+=`<rect x="${cx+dx}" y="${top}" width="${bw}" height="${Math.max(h,1)}" fill="${col}" rx="2"/>`;
       if(showVals) g+=`<text x="${cx+dx+bw/2}" y="${v>=0?top-5:top+h+13}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${pct(v)}</text>`;
@@ -1324,6 +1359,7 @@ function monthlyChart(series,W,sel){ // series: [{label, short, you, off}] de m�
 /* ===================== render ===================== */
 function update(){
   save();
+  paintCalcMonth();
   const M=MONTHS[state.mi], r=state.region, p=state.period;
   const off=M.general[p][r];
   const res=inflation(spend,M,p,r);
@@ -1404,13 +1440,13 @@ function renderIncome(r){
       : `Tus precios le ganaron a tu sueldo: para comprar lo mismo que en ${baseName}, hoy deberías cobrar <b>${money(need)}</b>, ${money(need-now)} más de lo que cobrás.`}
       ${Math.sign(realYou)!==Math.sign(realOff)&&Math.abs(realYou-realOff)>0.1?` Ojo: con la inflación oficial la conclusión sería la contraria, por eso importa medir la tuya.`:""}</p>`;
   } else if(you===null){
-    html+=`<p class="empty">Cargá tus gastos arriba para completar el cálculo.</p>`;
+    html+=`<p class="empty">Cargá tus gastos de ${monthName(MONTHS[state.mi]).toLowerCase()} en la calculadora para completar el cálculo.</p>`;
   } else {
     html+=`<p class="sub">Cargá también tu ingreso de ${baseName} para saber si le ganaste a la inflación.</p>`;
   }
   if(total){
     const share=total/now*100, left=now-total;
-    html+=`<p style="margin:14px 0 4px;font-weight:600">Tus gastos se llevan ${pct(share)} de tu ingreso</p>
+    html+=`<p style="margin:14px 0 4px;font-weight:600">Tus gastos de ${monthName(MONTHS[state.mi]).toLowerCase()} se llevan ${pct(share)} de tu ingreso</p>
       <div class="scale" aria-hidden="true"><div style="width:${Math.min(share,100)}%${share>100?";background:var(--bad)":""}"></div></div>
       <div class="scale-l"><span>Gastos ${money(total)}</span><span>${left>=0?"Te quedan":"Te faltan"} ${money(Math.abs(left))}</span></div>`;
   }
@@ -1420,26 +1456,37 @@ function renderIncome(r){
 let mmSel=-1, mmSeries=[];
 function paintMonthlyRead(){
   const s=mmSeries[mmSel], el=$("#mmRead"); if(!s||!el) return;
-  const d=s.you-s.off;
-  el.innerHTML=`<b>${s.name}:</b> tu inflación <b style="color:var(--you-ink)">${pct(s.you)}</b> · INDEC <b style="color:var(--indec)">${pct(s.off)}</b> · ${Math.abs(d)<0.05?"igual a la oficial":`${pct(Math.abs(d)).replace("%"," puntos")} ${d>0?"arriba":"abajo"}`}`;
+  if(s.you===null){
+    el.innerHTML=`<b>${s.name}:</b> sin gastos cargados · INDEC <b style="color:var(--indec)">${pct(s.off)}</b><button type="button" class="btn" data-goto="${s.mi}">Cargar ${MES[MONTHS[s.mi].month-1]}</button>`;
+  } else {
+    const d=s.you-s.off;
+    el.innerHTML=`<b>${s.name}:</b> tu inflación <b style="color:var(--you-ink)">${pct(s.you)}</b> · INDEC <b style="color:var(--indec)">${pct(s.off)}</b> · ${Math.abs(d)<0.05?"igual a la oficial":`${pct(Math.abs(d)).replace("%"," puntos")} ${d>0?"arriba":"abajo"}`}`;
+  }
   document.querySelectorAll("#monthly .mm").forEach(g=>g.classList.toggle("sel",+g.dataset.i===mmSel));
 }
 function renderMonthly(r){
   const el=$("#monthly");
-  const series=MONTHS.slice(0,12).reverse().map(M=>{ // los últimos 12 informes
-    const res=inflation(spend,M,"m",r);
-    return {label:cap(MES[M.month-1]).slice(0,3)+" "+String(M.year).slice(2), short:cap(MES[M.month-1]).slice(0,3), name:monthName(M), you:res?res.value:0, off:M.general.m[r]};
-  });
-  if(!CATS.some(c=>spend[c.id]>0)){ el.innerHTML=`<p class="empty">Cargá tus gastos en la calculadora para ver la evolución.</p>`; return; }
-  const sumYou=series.reduce((s,x)=>s*(1+x.you/100),1), sumOff=series.reduce((s,x)=>s*(1+x.off/100),1);
-  if(!(mmSel>=0 && mmSel<series.length)) mmSel=series.length-1;
+  const series=MONTHS.slice(0,12).map((M,mi)=>{ // los últimos 12 informes
+    const res=inflation(spendBy[mkey(M)]||{},M,"m",r);
+    return {mi, label:cap(MES[M.month-1]).slice(0,3)+" "+String(M.year).slice(2), short:cap(MES[M.month-1]).slice(0,3), name:monthName(M), you:res?res.value:null, off:M.general.m[r]};
+  }).reverse();
+  const loaded=series.filter(x=>x.you!==null);
+  if(!loaded.length){ el.innerHTML=`<p class="empty">Cargá tus gastos de uno o más meses en la calculadora para ver la evolución.</p>`; return; }
+  const sumYou=loaded.reduce((s,x)=>s*(1+x.you/100),1), sumOff=loaded.reduce((s,x)=>s*(1+x.off/100),1);
+  if(!(mmSel>=0 && mmSel<series.length) || mmSeries.length!==series.length) mmSel=series.lastIndexOf(loaded[loaded.length-1]);
   el.innerHTML = `${monthlyChart(series,Math.max(260,el.clientWidth-44),mmSel)}
     <p class="mmread" id="mmRead" aria-live="polite"></p>
     <div class="legend"><span><s style="background:var(--you)"></s>Tu inflación</span><span><s style="background:var(--indec)"></s>INDEC ${REG_SHORT[r]}</span></div>
-    <p class="verdict" style="margin-bottom:0">Tocá un mes para ver el detalle. Sumando los ${series.length} meses, tus precios subieron ${pct((sumYou-1)*100)} y los del índice oficial ${pct((sumOff-1)*100)}.</p>`;
+    <p class="verdict" style="margin-bottom:0">Tocá un mes para ver el detalle. ${loaded.length===1
+      ? `Por ahora cargaste gastos de un solo mes: sumá otros meses para ver la evolución.`
+      : `En los ${loaded.length} meses con gastos cargados, tus precios subieron ${pct((sumYou-1)*100)} y los del índice oficial ${pct((sumOff-1)*100)}.`}</p>`;
   mmSeries=series; paintMonthlyRead();
 }
-$("#monthly").addEventListener("click",e=>{ const g=e.target.closest(".mm"); if(g){ mmSel=+g.dataset.i; paintMonthlyRead(); } });
+$("#monthly").addEventListener("click",e=>{
+  const go=e.target.closest("[data-goto]");
+  if(go){ selectMonth(+go.dataset.goto); fillInputs(); update(); $("#calculadora").scrollIntoView(); $("#in-"+CATS[0].id).focus({preventScroll:true}); return; }
+  const g=e.target.closest(".mm"); if(g){ mmSel=+g.dataset.i; paintMonthlyRead(); }
+});
 $("#monthly").addEventListener("keydown",e=>{ const g=e.target.closest(".mm"); if(g&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); mmSel=+g.dataset.i; paintMonthlyRead(); } });
 let mmResize; addEventListener("resize",()=>{ clearTimeout(mmResize); mmResize=setTimeout(()=>renderMonthly(state.region),150); });
 
