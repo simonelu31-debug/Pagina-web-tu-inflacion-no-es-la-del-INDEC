@@ -1,0 +1,37 @@
+; Proyecto de Godot 4.4 (motor gratuito y libre: https://godotengine.org)
+config_version=5
+
+[application]
+
+config/name="Leyendas del fútbol argentino"
+config/description="Los 20 clubes con más puntos de la historia, con sus mejores jugadores."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.047, 0.133, 0.251, 1)
+boot_splash/show_image=false
+
+[autoload]
+
+Datos="*res://scripts/datos.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=false
+pointing/emulate_mouse_from_touch=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=1
+environment/defaults/default_clear_color=Color(0.02, 0.06, 0.11, 1)
